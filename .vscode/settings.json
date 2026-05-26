@@ -1,0 +1,11 @@
+{
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/venv",
+    "**/.next",
+    "**/.turbo",
+    "**/dist"
+  ],
+  "python.venvFolders": [],
+  "python-envs.workspaceSearchPaths": []
+}
