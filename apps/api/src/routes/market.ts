@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
 // Multi-skill job search — searches for jobs across all user skills
 router.post('/jobs', authMiddleware, async (req: AuthRequest, res) => {
@@ -9,7 +10,7 @@ router.post('/jobs', authMiddleware, async (req: AuthRequest, res) => {
     const { skills, location } = req.body;
     console.log(`[MARKET] Multi-skill search for: ${JSON.stringify(skills)}`);
 
-    const response = await fetch('http://localhost:8000/market/jobs-for-skills', {
+    const response = await fetch(`${AI_SERVICE_URL}/market/jobs-for-skills`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ skills: skills || [], location: location || 'India' }),
@@ -39,7 +40,7 @@ router.post('/search', authMiddleware, async (req: AuthRequest, res) => {
     const { query, location } = req.body;
     console.log(`[MARKET] Custom search: "${query}"`);
 
-    const response = await fetch('http://localhost:8000/market/search', {
+    const response = await fetch(`${AI_SERVICE_URL}/market/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: query || '', location: location || 'India' }),

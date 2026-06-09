@@ -5,6 +5,7 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 const db = getDb(process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/career_copilot');
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
 router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
   const userId = req.auth?.userId;
@@ -18,7 +19,7 @@ router.post('/generate', authMiddleware, async (req: AuthRequest, res) => {
     const skillGaps = ['React', 'System Design'];
 
     // Call Python FastAPI
-    const response = await fetch('http://localhost:8000/roadmap/generate', {
+    const response = await fetch(`${AI_SERVICE_URL}/roadmap/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ current_skills: currentSkills, skill_gaps: skillGaps, target_role: targetRole }),

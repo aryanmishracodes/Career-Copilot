@@ -13,6 +13,14 @@
 
 **An AI-powered career intelligence platform that transforms your resume into actionable career strategy.**
 
+<p align="center">
+  <a href="https://career-copilot-web.vercel.app"><img src="https://img.shields.io/badge/🌐_Live_Demo-career--copilot--web.vercel.app-blue?style=for-the-badge" /></a>
+  &nbsp;
+  <a href="https://render.com/deploy?repo=https://github.com/aryanmishracodes/Career-Copilot"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" /></a>
+</p>
+
+> **Note:** The first request may take ~30s if the backend is waking up (free tier cold start).
+
 Career Copilot is a full-stack SaaS application that combines resume analysis, live job market intelligence, adaptive mock interviews, and personalized learning roadmaps — all powered by Google Gemini AI. Upload your resume once and get a complete career command center.
 
 ---
