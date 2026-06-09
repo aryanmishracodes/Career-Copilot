@@ -432,5 +432,5 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 <p align="center">
-  <b>Built with ❤️ and a whole lot of AI</b>
+  <b>Built with ❤️</b>
 </p>
