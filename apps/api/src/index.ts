@@ -39,8 +39,32 @@ app.use('/api/v1/roadmap', roadmapRouter);
 app.use('/api/v1/interviews', interviewsRouter);
 app.use('/api/v1/market', marketRouter);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'career-copilot-api' });
+app.get('/health', async (req, res) => {
+  const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+  let aiStatus = 'unknown';
+  let aiError = null;
+  try {
+    const response = await fetch(`${AI_SERVICE_URL}/health`, { signal: AbortSignal.timeout(5000) });
+    if (response.ok) {
+      aiStatus = await response.text();
+    } else {
+      aiStatus = `HTTP ${response.status}`;
+    }
+  } catch (err: any) {
+    aiStatus = 'failed';
+    aiError = {
+      message: err.message,
+      code: err.code,
+      cause: err.cause ? { message: err.cause.message, code: err.cause.code } : null
+    };
+  }
+  res.json({
+    status: 'ok',
+    service: 'career-copilot-api',
+    aiServiceUrl: AI_SERVICE_URL,
+    aiServiceStatus: aiStatus,
+    aiServiceError: aiError
+  });
 });
 
 app.listen(port, () => {

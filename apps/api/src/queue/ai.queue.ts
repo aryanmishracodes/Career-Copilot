@@ -105,7 +105,7 @@ async function processResumeDirect(data: { resumeId: string; userId: string; fil
       sql`UPDATE resumes SET raw_text = ${cleanText}, parsed_json = ${JSON.stringify(result.structured)}, embedding_id = ${result.embedding_id} WHERE id = ${resumeId}`
     );
   } catch (error) {
-    console.error('[QUEUE] Direct processing error:', (error as Error).message);
+    console.error('[QUEUE] Direct processing error:', error);
     throw error;
   }
 }
