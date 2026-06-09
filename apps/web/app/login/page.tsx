@@ -30,9 +30,10 @@ function GoogleIcon() {
 }
 
 function getGoogleOAuthUrl() {
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/+$/, "");
   const params = new URLSearchParams({
     client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
-    redirect_uri: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/auth/oauth/google/callback`,
+    redirect_uri: `${apiBaseUrl}/api/v1/auth/oauth/google/callback`,
     response_type: "code",
     scope: "openid email profile",
     access_type: "offline",

@@ -294,7 +294,8 @@ router.get('/oauth/google/callback', async (req, res) => {
   if (!code) return res.redirect(`${APP_URL}/login?error=oauth_failed`);
 
   try {
-    const redirectUri = `${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/oauth/google/callback`;
+    const apiBaseUrl = (process.env.API_URL || 'http://localhost:4000').replace(/\/+$/, '');
+    const redirectUri = `${apiBaseUrl}/api/v1/auth/oauth/google/callback`;
 
     // Exchange code for tokens
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
