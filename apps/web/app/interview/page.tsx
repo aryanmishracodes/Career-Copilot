@@ -8,11 +8,11 @@ import { ArrowLeft, Activity } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import AuthGuard from "../../components/AuthGuard";
 
-import { InterviewLoading }   from "../../components/interview/InterviewLoading";
-import { InterviewSetup }     from "../../components/interview/InterviewSetup";
+import { InterviewLoading } from "../../components/interview/InterviewLoading";
+import { InterviewSetup } from "../../components/interview/InterviewSetup";
 import { LiveInterviewPanel } from "../../components/interview/LiveInterviewPanel";
 import { EvaluationSidebar } from "../../components/interview/EvaluationSidebar";
-import { InterviewResults }   from "../../components/interview/InterviewResults";
+import { InterviewResults } from "../../components/interview/InterviewResults";
 
 import {
   evaluateAnswer,
@@ -38,21 +38,20 @@ const DEFAULT_MAX_QUESTIONS = 10;
 export default function InterviewPage() {
   const { token } = useAuth();
 
-  const [phase, setPhase]                   = useState<InterviewPhase>("setup");
-  const [resume, setResume]                 = useState<ResumeData | null>(null);
-  const [resumeLoading, setResumeLoading]   = useState(true);
-  const [interviewId, setInterviewId]       = useState<string | null>(null);
-  const [interviewType, setInterviewType]   = useState<InterviewType | null>(null);
-  const [targetRole, setTargetRole]         = useState("Software Engineer");
+  const [phase, setPhase] = useState<InterviewPhase>("setup");
+  const [resume, setResume] = useState<ResumeData | null>(null);
+  const [resumeLoading, setResumeLoading] = useState(true);
+  const [interviewId, setInterviewId] = useState<string | null>(null);
+  const [interviewType, setInterviewType] = useState<InterviewType | null>(null);
+  const [targetRole, setTargetRole] = useState("Software Engineer");
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [questionNumber, setQuestionNumber] = useState(0);
-  const [turns, setTurns]                   = useState<Turn[]>([]);
-  const [isThinking, setIsThinking]         = useState(false);
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [isThinking, setIsThinking] = useState(false);
   const [askedQuestions, setAskedQuestions] = useState<Set<string>>(new Set());
   const [coveredConcepts, setCoveredConcepts] = useState<Set<string>>(new Set());
-  const [personalityId, setPersonalityId]   = useState<PersonalityId>("faang_engineer");
-  const [maxQuestions, setMaxQuestions]     = useState(DEFAULT_MAX_QUESTIONS);
-  const [showFallbackAlert, setShowFallbackAlert] = useState(false);
+  const [personalityId, setPersonalityId] = useState<PersonalityId>("faang_engineer");
+  const [maxQuestions, setMaxQuestions] = useState(DEFAULT_MAX_QUESTIONS);
 
   // Load resume on mount
   useEffect(() => {
@@ -102,7 +101,6 @@ export default function InterviewPage() {
         setAskedQuestions(new Set([q]));
         setQuestionNumber(1);
       } catch {
-        setShowFallbackAlert(true);
         setCurrentQuestion(firstQ);
         setQuestionNumber(1);
       } finally {
@@ -192,15 +190,15 @@ export default function InterviewPage() {
             prev.map((t) =>
               t.id === optimisticTurn.id
                 ? {
-                    ...t,
-                    feedback: resolvedFeedback,
-                    scores: {
-                      ...t.scores,
-                      technical:     data.scores?.technical     ?? t.scores.technical,
-                      communication: data.scores?.communication ?? t.scores.communication,
-                    },
-                    overallPct: data.overall_pct ?? t.overallPct,
-                  }
+                  ...t,
+                  feedback: resolvedFeedback,
+                  scores: {
+                    ...t.scores,
+                    technical: data.scores?.technical ?? t.scores.technical,
+                    communication: data.scores?.communication ?? t.scores.communication,
+                  },
+                  overallPct: data.overall_pct ?? t.overallPct,
+                }
                 : t
             )
           );
@@ -213,7 +211,6 @@ export default function InterviewPage() {
           advanceOrEnd(aiQ ?? nextResult.question, nextResult.concepts);
 
         } else {
-          setShowFallbackAlert(true);
           setTurns((prev) =>
             prev.map((t) =>
               t.id === optimisticTurn.id
@@ -225,7 +222,6 @@ export default function InterviewPage() {
           advanceOrEnd(nextResult.question, nextResult.concepts);
         }
       } catch {
-        setShowFallbackAlert(true);
         setTurns((prev) =>
           prev.map((t) =>
             t.id === optimisticTurn.id
@@ -247,10 +243,9 @@ export default function InterviewPage() {
     [token, interviewId, interviewType, currentQuestion, questionNumber, targetRole, resume, maxQuestions, askedQuestions, coveredConcepts]
   );
 
-  const handleEnd     = useCallback(() => setPhase("results"), []);
+  const handleEnd = useCallback(() => setPhase("results"), []);
 
   const handleRestart = useCallback(() => {
-    setShowFallbackAlert(false);
     setPhase("setup");
     setTurns([]);
     setQuestionNumber(0);
@@ -315,20 +310,6 @@ export default function InterviewPage() {
           </div>
         ) : phase === "active" && interviewType ? (
           <div className="max-w-6xl mx-auto px-6 py-8 relative z-10">
-            {showFallbackAlert && (
-              <div className="mb-6 p-4 bg-amber-950/20 border border-amber-900/40 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-3 font-mono shadow-[inset_0_1px_1px_rgba(255,255,255,0.015)]">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">⚠️</span>
-                  <span>AI Service connection failed or timed out (cold start). Running in offline fallback mode with static questions.</span>
-                </div>
-                <button 
-                  onClick={() => setShowFallbackAlert(false)} 
-                  className="px-2.5 py-1 rounded bg-amber-900/20 hover:bg-amber-900/40 text-amber-200 hover:text-amber-100 transition-colors"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
               <div className="border border-zinc-900/80 rounded-2xl bg-zinc-950/40 backdrop-blur-xl p-6 flex flex-col min-h-[60vh] shadow-2xl relative overflow-hidden">
                 <AmbientGlow size="sm" color="violet" className="-top-10 -left-10 opacity-10" />
