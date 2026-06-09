@@ -13,7 +13,6 @@ import {
 } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import AuthGuard from "../../components/AuthGuard";
-import { SpatialPanel, InteractiveButton, AmbientGlow, NeuralPulse } from "../../components/ui/primitives";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -62,13 +61,13 @@ const fadeUp = {
   hidden: { opacity: 0, y: 18 },
   visible: (i: number = 0) => ({
     opacity: 1, y: 0,
-    transition: { delay: Math.min(i, 3) * 0.04, duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    transition: { delay: Math.min(i, 3) * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
   }),
 };
 
 const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
 };
 
 const springConfig = { type: "spring" as const, stiffness: 260, damping: 28 };
@@ -91,18 +90,18 @@ function AnimatedBar({ pct, color, delay = 0 }: { pct: number; color: string; de
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   return (
-    <div ref={ref} className="w-full bg-zinc-900/60 rounded-full h-1.5 overflow-hidden border border-zinc-800/30">
+    <div ref={ref} className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
       <motion.div
         className={`h-1.5 rounded-full ${color}`}
         initial={{ width: 0 }}
         animate={inView ? { width: `${pct}%` } : { width: 0 }}
-        transition={{ duration: 0.95, delay, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
       />
     </div>
   );
 }
 
-// ── Section card (identical to Resume Intelligence but visually upgraded) ────
+// ── Section card (identical to Resume Intelligence) ────────────────────────────
 
 function SectionCard({
   title, icon, children, defaultOpen = true, delay = 0,
@@ -121,36 +120,36 @@ function SectionCard({
       custom={delay}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
+      whileHover={{ y: -1, transition: { duration: 0.2 } }}
+      className="border border-zinc-800 rounded-xl overflow-hidden"
     >
-      <SpatialPanel glow={true} interactive={false} className="border-zinc-900/80 bg-zinc-950/40 backdrop-blur-xl p-0 overflow-hidden shadow-2xl">
-        <motion.button
-          onClick={() => setOpen(!open)}
-          className="w-full flex items-center justify-between px-6 py-4.5 bg-zinc-950/40 hover:bg-zinc-900/20 transition-colors border-b border-zinc-900/80"
-          whileTap={{ scale: 0.995 }}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-zinc-500">{icon}</span>
-            <span className="text-[11px] font-mono font-bold text-zinc-400 tracking-widest uppercase">{title}</span>
-          </div>
-          <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.25, ease: "easeInOut" }}>
-            <ChevronUp className="w-4 h-4 text-zinc-600 hover:text-zinc-400 transition-colors" />
-          </motion.span>
-        </motion.button>
-        <AnimatePresence initial={false}>
-          {open && (
-            <motion.div
-              key="content"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="bg-zinc-950/10 px-6 py-5.5">{children}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </SpatialPanel>
+      <motion.button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-6 py-4 bg-zinc-900 hover:bg-zinc-800/80 transition-colors"
+        whileTap={{ scale: 0.995 }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-zinc-400">{icon}</span>
+          <span className="text-sm font-semibold text-zinc-100 tracking-wide uppercase">{title}</span>
+        </div>
+        <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.25, ease: "easeInOut" }}>
+          <ChevronUp className="w-4 h-4 text-zinc-500" />
+        </motion.span>
+      </motion.button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="bg-zinc-950 px-6 py-5">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -168,7 +167,7 @@ const SKILL_INTELLIGENCE: Record<string, Partial<SkillNode>> = {
   "AWS": { hiringImpact: "Very High", difficulty: "Intermediate", estimatedWeeks: 4, recruiterRelevance: 88, marketDemand: "Surging", demandPct: 34, companies: ["Amazon", "Stripe", "Shopify", "Twilio"], resources: [{ type: "course", name: "AWS Certified Developer Associate", platform: "A Cloud Guru", why: "Certification is a strong hiring signal — covers EC2, Lambda, S3, RDS in depth", hours: 35 }, { type: "practice", name: "AWS Free Tier hands-on projects", platform: "AWS", why: "Practical deployment experience is what interviewers probe for", hours: 15 }] },
   "React": { hiringImpact: "Very High", difficulty: "Intermediate", estimatedWeeks: 3, recruiterRelevance: 90, marketDemand: "Stable", demandPct: 8, companies: ["Meta", "Vercel", "Linear", "Notion"], resources: [{ type: "course", name: "Epic React", platform: "Kent C. Dodds", why: "The most comprehensive React course — covers patterns used in production at scale", hours: 30 }, { type: "project", name: "Build a full-stack Next.js application", platform: "Personal", why: "React + Next.js is the dominant frontend stack — portfolio projects are essential", hours: 20 }] },
   "Next.js": { hiringImpact: "High", difficulty: "Intermediate", estimatedWeeks: 2, recruiterRelevance: 85, marketDemand: "Surging", demandPct: 47, companies: ["Vercel", "Shopify", "TikTok", "Twitch"], resources: [{ type: "course", name: "Next.js 14 Complete Course", platform: "Udemy", why: "Covers App Router, Server Components, and streaming — the current production standard", hours: 20 }] },
-  "GraphQL": { hiringImpact: "Medium", difficulty: "Intermediate", estimatedWeeks: 2, recruiterRelevance: 72, marketDemand: "Stable", demandPct: 5, companies: ["GraphQL", "Shopify", "Twitter", "Airbnb"], resources: [{ type: "course", name: "The Modern GraphQL Bootcamp", platform: "Udemy", why: "Covers schema design, resolvers, and subscriptions — the full production stack", hours: 16 }] },
+  "GraphQL": { hiringImpact: "Medium", difficulty: "Intermediate", estimatedWeeks: 2, recruiterRelevance: 72, marketDemand: "Stable", demandPct: 5, companies: ["GitHub", "Shopify", "Twitter", "Airbnb"], resources: [{ type: "course", name: "The Modern GraphQL Bootcamp", platform: "Udemy", why: "Covers schema design, resolvers, and subscriptions — the full production stack", hours: 16 }] },
   "Python": { hiringImpact: "High", difficulty: "Beginner", estimatedWeeks: 3, recruiterRelevance: 82, marketDemand: "Growing", demandPct: 25, companies: ["Google", "Stripe", "Dropbox", "Reddit"], resources: [{ type: "course", name: "Python for Everybody", platform: "Coursera", why: "Best structured Python course for developers coming from other languages", hours: 20 }] },
   "Go": { hiringImpact: "High", difficulty: "Intermediate", estimatedWeeks: 4, recruiterRelevance: 80, marketDemand: "Growing", demandPct: 31, companies: ["Google", "Cloudflare", "Stripe", "Uber"], resources: [{ type: "course", name: "Learn Go with Tests", platform: "GitHub", why: "Free, test-driven approach — mirrors how Go is actually used in production", hours: 20 }] },
   "CI/CD": { hiringImpact: "High", difficulty: "Intermediate", estimatedWeeks: 2, recruiterRelevance: 83, marketDemand: "Growing", demandPct: 29, companies: ["GitHub", "GitLab", "Vercel", "Netlify"], resources: [{ type: "course", name: "GitHub Actions: The Complete Guide", platform: "Udemy", why: "GitHub Actions is now the dominant CI/CD platform — directly applicable to most jobs", hours: 12 }, { type: "project", name: "Set up CI/CD pipeline for a personal project", platform: "GitHub", why: "Demonstrated pipeline experience is a strong hiring signal for DevOps-adjacent roles", hours: 6 }] },
@@ -189,37 +188,37 @@ const STAGE_META: Record<SkillNode["stage"], { label: string; description: strin
   critical: {
     label: "Critical Hiring Gap",
     description: "Skills that are blocking your shortlist rate right now",
-    color: "text-rose-400",
-    borderColor: "border-rose-900/60 shadow-[0_0_12px_rgba(244,63,94,0.06)]",
-    badgeStyle: "bg-rose-950/50 text-rose-400 border-rose-900/40",
+    color: "text-red-400",
+    borderColor: "border-red-900/50",
+    badgeStyle: "bg-red-950/50 text-red-400 border-red-800",
   },
   roi: {
     label: "High ROI Skills",
     description: "Highest return on learning investment for your target domain",
     color: "text-amber-400",
-    borderColor: "border-amber-900/40 shadow-[0_0_12px_rgba(245,158,11,0.06)]",
-    badgeStyle: "bg-amber-950/50 text-amber-400 border-amber-900/30",
+    borderColor: "border-amber-900/40",
+    badgeStyle: "bg-amber-950/50 text-amber-400 border-amber-800",
   },
   differentiator: {
     label: "Market Differentiators",
     description: "Skills that separate you from average candidates",
-    color: "text-cyan-400",
-    borderColor: "border-cyan-900/40 shadow-[0_0_12px_rgba(34,211,238,0.06)]",
-    badgeStyle: "bg-cyan-950/50 text-cyan-400 border-cyan-900/30",
+    color: "text-blue-400",
+    borderColor: "border-blue-900/40",
+    badgeStyle: "bg-blue-950/50 text-blue-400 border-blue-800",
   },
   advanced: {
     label: "Advanced Engineering",
     description: "Senior-level signals that unlock higher compensation",
     color: "text-purple-400",
     borderColor: "border-purple-900/40",
-    badgeStyle: "bg-purple-950/50 text-purple-400 border-purple-900/30",
+    badgeStyle: "bg-purple-950/50 text-purple-400 border-purple-800",
   },
   growth: {
     label: "Long-Term Growth",
     description: "Emerging technologies with strong 2–3 year trajectory",
     color: "text-emerald-400",
     borderColor: "border-emerald-900/40",
-    badgeStyle: "bg-emerald-950/50 text-emerald-400 border-emerald-900/30",
+    badgeStyle: "bg-emerald-950/50 text-emerald-400 border-emerald-800",
   },
 };
 
@@ -324,7 +323,7 @@ function deriveTrendingSkills(resume: ResumeData): { name: string; trend: "up" |
   ];
 }
 
-// ── Skill card (visually redesigned with HSL borders) ──────────────────────────
+// ── Skill card ─────────────────────────────────────────────────────────────────
 
 function SkillCard({ node, index }: { node: SkillNode; index: number }) {
   const [expanded, setExpanded] = useState(false);
@@ -338,7 +337,7 @@ function SkillCard({ node, index }: { node: SkillNode; index: number }) {
 
   const demandColor = node.marketDemand === "Surging" ? "text-emerald-400"
     : node.marketDemand === "Growing" ? "text-amber-400"
-    : node.marketDemand === "Stable" ? "text-zinc-400" : "text-rose-500";
+    : node.marketDemand === "Stable" ? "text-zinc-400" : "text-red-400";
 
   const resourceIcon: Record<Resource["type"], string> = {
     course: "📚", book: "📖", project: "🛠", video: "🎬", practice: "⚡",
@@ -351,28 +350,21 @@ function SkillCard({ node, index }: { node: SkillNode; index: number }) {
       custom={index}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
-      className="group/card"
+      whileHover={{ y: -1, borderColor: "rgb(63 63 70)", transition: { duration: 0.2 } }}
+      className={`border rounded-xl overflow-hidden bg-zinc-900 ${node.missingFrom ? meta.borderColor : "border-zinc-800"}`}
     >
-      <SpatialPanel
-        glow={true}
-        interactive={false}
-        className={`p-5 border transition-all duration-300 bg-zinc-950/40 backdrop-blur-xl shadow-xl ${
-          node.missingFrom 
-            ? `${meta.borderColor} bg-zinc-950/65` 
-            : "border-zinc-900/80"
-        }`}
-      >
-        {/* Main row */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex-1 min-w-0 space-y-2.5">
-            {/* Header badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[9px] font-mono tracking-widest font-bold px-2.5 py-0.5 rounded-md border uppercase ${meta.badgeStyle}`}>
+      {/* Main row */}
+      <div className="px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded border font-mono ${meta.badgeStyle}`}>
                 {meta.label}
               </span>
               {node.missingFrom && (
                 <motion.span
-                  className="text-[9px] font-mono tracking-widest font-bold px-2.5 py-0.5 rounded-md border bg-rose-950/30 text-rose-400 border-rose-900/40 animate-pulse"
+                  className="text-xs px-2 py-0.5 rounded border font-mono bg-red-950/30 text-red-500 border-red-900/50"
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 + 0.1, ...springConfig }}
@@ -382,142 +374,141 @@ function SkillCard({ node, index }: { node: SkillNode; index: number }) {
               )}
             </div>
 
-            <h3 className="text-base font-bold text-zinc-100 font-outfit">{node.name}</h3>
+            <h3 className="text-base font-bold text-zinc-100 mb-1">{node.name}</h3>
 
             {/* Meta row */}
-            <div className="flex items-center gap-3.5 flex-wrap text-xs font-outfit">
-              <span className={`font-semibold ${impactColor}`}>{node.hiringImpact} Impact</span>
-              <span className="text-zinc-700 select-none">·</span>
+            <div className="flex items-center gap-4 flex-wrap text-xs">
+              <span className={`font-semibold ${impactColor}`}>{node.hiringImpact} hiring impact</span>
+              <span className="text-zinc-600">·</span>
               <span className={demandColor}>
-                {node.marketDemand === "Surging" || node.marketDemand === "Growing" ? "↑" : node.marketDemand === "Declining" ? "↓" : "→"} {node.marketDemand} ({node.demandPct > 0 ? "+" : ""}{node.demandPct}%)
+                {node.marketDemand === "Surging" || node.marketDemand === "Growing" ? "↑" : node.marketDemand === "Declining" ? "↓" : "→"} {node.marketDemand} ({node.demandPct > 0 ? "+" : ""}{node.demandPct}% YoY)
               </span>
-              <span className="text-zinc-700 select-none">·</span>
-              <span className="text-zinc-400">{node.difficulty}</span>
-              <span className="text-zinc-700 select-none">·</span>
+              <span className="text-zinc-600">·</span>
+              <span className="text-zinc-500">{node.difficulty}</span>
+              <span className="text-zinc-600">·</span>
               <span className="text-zinc-500 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-zinc-600" />{node.estimatedWeeks} weeks
+                <Clock className="w-3 h-3" />{node.estimatedWeeks}w
               </span>
             </div>
           </div>
 
-          {/* Recruiter relevance circular gauge */}
-          <div className="shrink-0 text-left sm:text-right border-t border-zinc-900/50 sm:border-t-0 pt-3 sm:pt-0">
-            <span className={`text-2xl font-bold font-mono tracking-tight ${node.recruiterRelevance >= 85 ? "text-emerald-400" : node.recruiterRelevance >= 70 ? "text-amber-400" : "text-zinc-500"}`}>
+          {/* Recruiter relevance */}
+          <div className="shrink-0 text-right">
+            <span className={`text-2xl font-black font-mono ${node.recruiterRelevance >= 85 ? "text-emerald-400" : node.recruiterRelevance >= 70 ? "text-amber-400" : "text-zinc-500"}`}>
               <AnimatedNumber value={node.recruiterRelevance} suffix="%" />
             </span>
-            <p className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase mt-0.5">recruiter relevance</p>
+            <p className="text-xs text-zinc-600 leading-none mt-0.5">recruiter relevance</p>
           </div>
         </div>
 
-        {/* Relevance progress bar */}
-        <div className="mt-4">
+        {/* Relevance bar */}
+        <div className="mt-3">
           <AnimatedBar
             pct={node.recruiterRelevance}
-            color={node.recruiterRelevance >= 85 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : node.recruiterRelevance >= 70 ? "bg-amber-500" : "bg-zinc-700"}
+            color={node.recruiterRelevance >= 85 ? "bg-emerald-500" : node.recruiterRelevance >= 70 ? "bg-amber-500" : "bg-zinc-600"}
             delay={Math.min(index, 3) * 0.04 + 0.05}
           />
         </div>
 
-        {/* Description/Why summary */}
-        <p className="text-xs text-zinc-400 mt-3 leading-relaxed font-outfit">{node.why}</p>
+        {/* Why summary */}
+        <p className="text-xs text-zinc-500 mt-2 leading-relaxed line-clamp-2">{node.why}</p>
 
-        {/* Target Hiring Companies */}
+        {/* Companies */}
         {node.companies.length > 0 && (
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Target Hiring:</span>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="text-xs text-zinc-600">Hiring at:</span>
             {node.companies.slice(0, 4).map(c => (
-              <span key={c} className="text-xs text-zinc-300 font-mono bg-zinc-900/60 border border-zinc-800/40 rounded px-2 py-0.5">{c}</span>
+              <span key={c} className="text-xs text-zinc-500 font-mono">{c}</span>
             ))}
           </div>
         )}
 
-        {/* Expand Details Trigger */}
-        <div className="mt-4 pt-3.5 border-t border-zinc-900/80 flex items-center justify-between">
+        {/* Expand button */}
+        <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-between">
           <motion.button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-outfit"
+            className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
             whileTap={{ scale: 0.97 }}
           >
-            Resources & telemetry details
+            Resources & reasoning
             <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-600" />
+              <ChevronDown className="w-3.5 h-3.5" />
             </motion.span>
           </motion.button>
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{node.resources.length} active path{node.resources.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-zinc-600 font-mono">{node.resources.length} resource{node.resources.length !== 1 ? "s" : ""}</span>
         </div>
+      </div>
 
-        {/* Expanded detail resources panel */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="border-t border-zinc-900/80 pt-4.5 mt-2.5 space-y-4">
+      {/* Expanded panel */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="bg-zinc-950 border-t border-zinc-800 px-5 py-4 space-y-4">
 
-                {/* Extended Analysis */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">AI Diagnostic</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div className="border border-zinc-900 rounded-xl px-4 py-3 bg-zinc-950/60 font-outfit">
-                      <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider mb-0.5">Market demand</p>
-                      <p className={`text-xs font-semibold ${demandColor}`}>{node.marketDemand} · {node.demandPct > 0 ? "+" : ""}{node.demandPct}% YoY</p>
-                    </div>
-                    <div className="border border-zinc-900 rounded-xl px-4 py-3 bg-zinc-950/60 font-outfit">
-                      <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider mb-0.5">Hiring impact</p>
-                      <p className={`text-xs font-semibold ${impactColor}`}>{node.hiringImpact}</p>
-                    </div>
+              {/* Full reasoning */}
+              <div>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">AI Reasoning</p>
+                <p className="text-xs text-zinc-400 leading-relaxed">{node.why}</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="border border-zinc-800 rounded-lg px-3 py-2 bg-zinc-900">
+                    <p className="text-xs text-zinc-600 mb-0.5">Market demand</p>
+                    <p className={`text-xs font-semibold ${demandColor}`}>{node.marketDemand} · {node.demandPct > 0 ? "+" : ""}{node.demandPct}% YoY</p>
+                  </div>
+                  <div className="border border-zinc-800 rounded-lg px-3 py-2 bg-zinc-900">
+                    <p className="text-xs text-zinc-600 mb-0.5">Hiring impact</p>
+                    <p className={`text-xs font-semibold ${impactColor}`}>{node.hiringImpact}</p>
                   </div>
                 </div>
-
-                {/* Resource Lists */}
-                {node.resources.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Recommended learning channels</p>
-                    <div className="space-y-2.5">
-                      {node.resources.map((r, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                        >
-                          <SpatialPanel
-                            glow={false}
-                            interactive={true}
-                            className="border-zinc-900/80 bg-zinc-950/60 p-3.5 hover:bg-zinc-900/10 shadow-lg relative overflow-hidden flex flex-col sm:flex-row justify-between gap-4"
-                          >
-                            <div className="flex items-start gap-2.5 flex-1">
-                              <span className="text-sm shrink-0 pt-0.5">{resourceIcon[r.type]}</span>
-                              <div className="space-y-1">
-                                <p className="text-xs font-semibold text-zinc-200 font-outfit leading-snug">{r.name}</p>
-                                <p className="text-[10px] text-zinc-500 font-mono tracking-wide uppercase">{r.platform} · ~{r.hours} hours</p>
-                                <p className="text-xs text-zinc-500 leading-relaxed font-outfit pt-1 border-t border-zinc-900/40">{r.why}</p>
-                              </div>
-                            </div>
-                            <span className={`text-[9px] font-mono tracking-widest px-2.5 py-0.5 rounded-md border shrink-0 self-start sm:self-center uppercase ${
-                              r.type === "course" ? "bg-blue-950/40 text-blue-400 border-blue-900/50" :
-                              r.type === "book" ? "bg-purple-950/40 text-purple-400 border-purple-900/50" :
-                              r.type === "project" ? "bg-emerald-950/40 text-emerald-400 border-emerald-900/50" :
-                              r.type === "video" ? "bg-amber-950/40 text-amber-400 border-amber-900/50" :
-                              "bg-zinc-900 text-zinc-500 border-zinc-800"
-                            }`}>
-                              {r.type}
-                            </span>
-                          </SpatialPanel>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </SpatialPanel>
+
+              {/* Resources */}
+              {node.resources.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Recommended Resources</p>
+                  <div className="space-y-2">
+                    {node.resources.map((r, i) => (
+                      <motion.div
+                        key={i}
+                        className="border border-zinc-800 rounded-lg p-3 bg-zinc-900"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        whileHover={{ borderColor: "rgb(63 63 70)", transition: { duration: 0.15 } }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 flex-1">
+                            <span className="text-sm shrink-0">{resourceIcon[r.type]}</span>
+                            <div>
+                              <p className="text-xs font-semibold text-zinc-200">{r.name}</p>
+                              <p className="text-xs text-zinc-500 mt-0.5">{r.platform} · ~{r.hours}h</p>
+                              <p className="text-xs text-zinc-600 mt-1 leading-relaxed">{r.why}</p>
+                            </div>
+                          </div>
+                          <span className={`text-xs px-1.5 py-0.5 rounded border font-mono shrink-0 ${
+                            r.type === "course" ? "bg-blue-950/40 text-blue-400 border-blue-900" :
+                            r.type === "book" ? "bg-purple-950/40 text-purple-400 border-purple-900" :
+                            r.type === "project" ? "bg-emerald-950/40 text-emerald-400 border-emerald-900" :
+                            r.type === "video" ? "bg-amber-950/40 text-amber-400 border-amber-900" :
+                            "bg-zinc-900 text-zinc-500 border-zinc-800"
+                          }`}>
+                            {r.type}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -539,7 +530,8 @@ export default function RoadmapPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:4000/api/v1/resumes/latest", {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    fetch(`${apiBase}/api/v1/resumes/latest`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.ok ? r.json() : null)
@@ -562,23 +554,22 @@ export default function RoadmapPage() {
   const trending = resume ? deriveTrendingSkills(resume) : [];
 
   const STAGE_FILTERS: { key: StageFilter; label: string; count?: number }[] = [
-    { key: "all", label: "All nodes", count: roadmap.length },
+    { key: "all", label: "All", count: roadmap.length },
     { key: "critical", label: "Critical Gaps", count: criticalCount },
     { key: "roi", label: "High ROI", count: roadmap.filter(n => n.stage === "roi").length },
     { key: "differentiator", label: "Differentiators", count: roadmap.filter(n => n.stage === "differentiator").length },
     { key: "advanced", label: "Advanced", count: roadmap.filter(n => n.stage === "advanced").length },
-    { key: "growth", label: "Growth paths", count: roadmap.filter(n => n.stage === "growth").length },
+    { key: "growth", label: "Growth", count: roadmap.filter(n => n.stage === "growth").length },
   ];
 
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#030303] flex items-center justify-center relative overflow-hidden">
-          <AmbientGlow size="md" color="mixed" className="opacity-20" />
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
           <motion.div
-            className="w-10 h-10 border-2 border-zinc-800 border-t-violet-500 rounded-full"
+            className="w-8 h-8 border-2 border-zinc-700 border-t-zinc-300 rounded-full"
             animate={{ rotate: 360 }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           />
         </div>
       </AuthGuard>
@@ -588,31 +579,26 @@ export default function RoadmapPage() {
   if (!resume) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#030303] flex flex-col items-center justify-center px-6 relative overflow-hidden">
-          <AmbientGlow size="lg" color="mixed" className="-top-40 left-1/2 -translate-x-1/2 opacity-25" />
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6">
           <motion.div
-            className="w-full max-w-md text-center space-y-6 relative z-10"
+            className="w-full max-w-md text-center"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
-            <SpatialPanel glow={true} className="border-zinc-900 bg-zinc-950/40 p-8 text-center max-w-md w-full relative overflow-hidden shadow-2xl rounded-2xl flex flex-col items-center gap-6">
-              <div className="w-14 h-14 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.015)] relative overflow-hidden group">
-                <Layers className="w-5 h-5 text-zinc-400 group-hover:text-violet-400 transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-bold text-zinc-100 font-outfit">No Telemetry Matrix Detected</h2>
-                <p className="text-zinc-500 text-xs sm:text-sm leading-relaxed font-outfit max-w-xs mx-auto">
-                  Initialize resume intelligence scanning to map a prioritized skill trajectory based on market demand signals and direct gaps.
-                </p>
-              </div>
-              <Link href="/resume" className="w-full">
-                <InteractiveButton variant="primary" className="w-full flex items-center justify-center gap-2">
-                  Analyze Resume
-                  <ArrowRight className="w-4 h-4 text-zinc-950" />
-                </InteractiveButton>
-              </Link>
-            </SpatialPanel>
+            <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-5">
+              <Layers className="w-5 h-5 text-zinc-500" />
+            </div>
+            <h2 className="text-xl font-bold text-zinc-100 mb-2">No resume analyzed yet</h2>
+            <p className="text-zinc-500 text-sm leading-relaxed mb-7">
+              Upload your resume to generate a personalized AI learning roadmap — prioritized by hiring impact, market demand, and your current skill gaps.
+            </p>
+            <Link
+              href="/resume"
+              className="inline-flex items-center gap-2 bg-zinc-100 text-zinc-900 text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-white transition-colors"
+            >
+              Analyze Resume <ArrowRight className="w-4 h-4" />
+            </Link>
           </motion.div>
         </div>
       </AuthGuard>
@@ -621,159 +607,166 @@ export default function RoadmapPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#030303] text-zinc-100 relative overflow-hidden pb-20">
-        {/* High-end ambient atmospheric backlights */}
-        <AmbientGlow size="lg" color="mixed" className="-top-[240px] left-1/4 opacity-15" />
-        <AmbientGlow size="lg" color="cyan" className="-bottom-[200px] -right-[100px] opacity-10" />
+      <div className="min-h-screen bg-zinc-950 text-zinc-100">
 
-        {/* Sticky top bar */}
-        <div className="sticky top-0 z-20 px-6 pt-4 pb-2 bg-[#030303]/90 backdrop-blur-md border-b border-zinc-900/60 relative">
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* ── Sticky top bar ── */}
+        <div className="sticky top-0 z-20 px-6 pt-4 pb-2 bg-zinc-950/90 backdrop-blur-sm border-b border-zinc-900">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
             <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
               <Link href="/dashboard">
-                <InteractiveButton variant="secondary" className="px-3.5 py-1.5 flex items-center gap-1.5">
+                <motion.div
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-zinc-900 border border-transparent hover:border-zinc-800"
+                  whileHover={{ x: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Dashboard
-                </InteractiveButton>
+                </motion.div>
               </Link>
             </motion.div>
 
             <motion.div
+              className="flex items-center gap-2 text-xs text-zinc-600 border border-zinc-800 rounded-lg px-3 py-1.5 bg-zinc-900"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="border border-zinc-900 bg-zinc-950/60 backdrop-blur-md rounded-xl px-4 py-2 flex items-center gap-2 select-none self-start sm:self-center">
-                <NeuralPulse size="sm" label="Learning Telemetry Stream Active" />
-              </div>
+              <Activity className="w-3 h-3" />
+              Roadmap updated {lastUpdated} · based on backend hiring demand
             </motion.div>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-6 py-12 space-y-8 relative z-10">
+        <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
 
-          {/* Page header */}
+          {/* ── Page header ── */}
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-1"
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Interactive Skill Map</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100 mt-1 font-outfit">Career Growth Roadmap</h1>
+            <p className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Learning Intelligence</p>
+            <h1 className="text-2xl font-bold text-zinc-100 mt-1">Career Growth Roadmap</h1>
           </motion.div>
 
-          {/* Career Trajectory Hero */}
+          {/* ── Career Trajectory Hero ── */}
           {heroText && (
             <motion.div
+              className="border border-zinc-800 rounded-xl bg-zinc-900 px-6 py-5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ borderColor: "rgb(63 63 70)" }}
             >
-              <SpatialPanel glow={true} interactive={false} className="border-zinc-900/80 bg-zinc-950/40 relative overflow-hidden py-6 px-7 shadow-2xl">
-                <AmbientGlow size="md" color="indigo" className="-top-20 -right-20 opacity-15" />
-                <div className="flex flex-col md:flex-row items-start justify-between gap-8">
-                  <div className="space-y-3.5 flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-mono font-bold tracking-widest px-2.5 py-1 rounded-md border bg-zinc-900/80 text-zinc-400 border-zinc-800">
-                        Trajectory Vector
-                      </span>
-                      <span className="text-[11px] font-mono text-zinc-500">
-                        Derived from parsed resume benchmarks
-                      </span>
-                    </div>
-                    <p className="text-zinc-300 text-sm leading-relaxed max-w-2xl font-outfit">
-                      {heroText}
-                    </p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-3">
+                    <motion.span
+                      className="text-xs font-semibold px-2.5 py-1 rounded border font-mono bg-zinc-800 text-zinc-400 border-zinc-700"
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.15, ...springConfig }}
+                    >
+                      Career Trajectory
+                    </motion.span>
+                    <motion.span className="text-xs text-zinc-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
+                      Derived from resume + market signals
+                    </motion.span>
                   </div>
-                  <motion.div
-                    className="flex gap-3.5 shrink-0 w-full md:w-auto justify-start md:justify-end"
-                    initial={{ opacity: 0, x: 12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  <motion.p
+                    className="text-zinc-200 text-sm leading-relaxed max-w-2xl"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
                   >
-                    <HeroPill value={criticalCount} label="Critical gaps" color={criticalCount > 0 ? "text-rose-400" : "text-zinc-500"} />
-                    <HeroPill value={roadmap.length} label="Nodes mapped" />
-                    <HeroPill value={totalWeeks} label="Weeks mapped" suffix="w" color="text-amber-400" />
-                  </motion.div>
+                    {heroText}
+                  </motion.p>
                 </div>
-              </SpatialPanel>
+                <motion.div
+                  className="flex gap-3 shrink-0"
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <HeroPill value={criticalCount} label="Critical Gaps" color={criticalCount > 0 ? "text-red-400" : "text-zinc-400"} />
+                  <HeroPill value={roadmap.length} label="Skills Mapped" />
+                  <HeroPill value={totalWeeks} label="Est. Weeks" suffix="w" color="text-amber-400" />
+                </motion.div>
+              </div>
             </motion.div>
           )}
 
-          {/* AI Priority Engine Highlight */}
+          {/* ── AI Priority Engine ── */}
           {topPriority && (
             <motion.div
+              className="border border-zinc-800 rounded-xl bg-zinc-900 px-6 py-5"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ borderColor: "rgb(63 63 70)" }}
             >
-              <SpatialPanel glow={true} className="border-emerald-500/20 bg-emerald-500/[0.02] backdrop-blur-xl relative overflow-hidden py-6 px-7 shadow-2xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-4 h-4 text-emerald-400 animate-pulse" />
-                  <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">Primary Growth Node Recommendation</span>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex-1 space-y-2.5">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h3 className="text-lg font-bold text-zinc-100 font-outfit">{topPriority.name}</h3>
-                      <span className={`text-[9px] font-mono tracking-widest font-bold px-2 py-0.5 rounded-md border uppercase ${STAGE_META[topPriority.stage].badgeStyle}`}>
-                        {STAGE_META[topPriority.stage].label}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 leading-relaxed max-w-2xl font-outfit">{topPriority.why}</p>
-                    <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-500 flex-wrap">
-                      <span>Recruiter relevance: <span className="text-emerald-400 font-bold">{topPriority.recruiterRelevance}%</span></span>
-                      <span className="select-none text-zinc-700">//</span>
-                      <span>Market demand: <span className={`font-bold ${topPriority.marketDemand === "Surging" ? "text-emerald-400" : "text-amber-400"}`}>{topPriority.marketDemand} (+{topPriority.demandPct}%)</span></span>
-                      <span className="select-none text-zinc-700">//</span>
-                      <span>Est. learning time: <span className="text-zinc-300 font-bold">{topPriority.estimatedWeeks}w</span></span>
-                    </div>
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-4 h-4 text-zinc-400" />
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Highest ROI Next Step</span>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-bold text-zinc-100">{topPriority.name}</h3>
+                    <span className={`text-xs px-2 py-0.5 rounded border font-mono ${STAGE_META[topPriority.stage].badgeStyle}`}>
+                      {STAGE_META[topPriority.stage].label}
+                    </span>
                   </div>
-                  <div className="shrink-0 border border-zinc-900 rounded-xl px-5 py-4 bg-zinc-950/80 min-w-[200px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)] text-center sm:text-left">
-                    <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase mb-1.5">hiring impact</p>
-                    <p className={`text-base font-bold font-outfit leading-none ${topPriority.hiringImpact === "Very High" ? "text-emerald-400 animate-pulse" : "text-amber-400"}`}>
-                      {topPriority.hiringImpact}
-                    </p>
-                    {topPriority.companies.length > 0 && (
-                      <>
-                        <div className="border-t border-zinc-900/60 my-2 pt-2" />
-                        <p className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase mb-1">active filters</p>
-                        <p className="text-xs text-zinc-400 font-outfit">{topPriority.companies.slice(0, 3).join(", ")}</p>
-                      </>
-                    )}
+                  <p className="text-xs text-zinc-400 leading-relaxed mb-3">{topPriority.why}</p>
+                  <div className="flex items-center gap-4 text-xs flex-wrap">
+                    <span className="text-zinc-500">Recruiter relevance: <span className="text-emerald-400 font-mono font-semibold">{topPriority.recruiterRelevance}%</span></span>
+                    <span className="text-zinc-500">Market demand: <span className={`font-semibold ${topPriority.marketDemand === "Surging" ? "text-emerald-400" : "text-amber-400"}`}>{topPriority.marketDemand} (+{topPriority.demandPct}%)</span></span>
+                    <span className="text-zinc-500">Est. time: <span className="text-zinc-300 font-mono">{topPriority.estimatedWeeks}w</span></span>
                   </div>
                 </div>
-              </SpatialPanel>
+                <div className="shrink-0 border border-zinc-800 rounded-lg px-4 py-3 bg-zinc-950 min-w-[180px]">
+                  <p className="text-xs text-zinc-500 mb-1">Hiring impact</p>
+                  <p className={`text-sm font-bold ${topPriority.hiringImpact === "Very High" ? "text-emerald-400" : "text-amber-400"}`}>
+                    {topPriority.hiringImpact}
+                  </p>
+                  {topPriority.companies.length > 0 && (
+                    <>
+                      <p className="text-xs text-zinc-600 mt-2 mb-1">Hiring at</p>
+                      <p className="text-xs text-zinc-500">{topPriority.companies.slice(0, 3).join(", ")}</p>
+                    </>
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 
-          {/* Market-Driven Trending Skills collapsible card */}
-          <SectionCard title="Hiring Demand Signals" icon={<TrendingUp className="w-4.5 h-4.5" />} delay={0}>
-            <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
-              Hiring telemetry signals tracking YoY demand spikes. Green = covered by your current profile. Red = target node gaps.
+          {/* ── Market-Driven Trending Skills ── */}
+          <SectionCard title="Market-Driven Skill Signals" icon={<TrendingUp className="w-4 h-4" />} delay={0}>
+            <p className="text-xs text-zinc-500 mb-5">
+              Skills with increasing hiring demand in your target domain. Green = in your resume. Red = missing.
             </p>
-            <motion.div className="space-y-1.5" variants={staggerContainer} initial="hidden" animate="visible">
+            <motion.div className="space-y-0" variants={staggerContainer} initial="hidden" animate="visible">
               {trending.map((item, i) => (
                 <motion.div
                   key={item.name}
                   variants={fadeUp}
                   custom={i}
-                  className="flex items-center justify-between py-2 px-3 border border-zinc-900/40 bg-zinc-950/20 hover:bg-zinc-900/10 hover:border-zinc-800/80 rounded-xl transition-all duration-300"
-                  whileHover={{ x: 2 }}
+                  className="flex items-center justify-between py-3 border-b border-zinc-800 last:border-0"
+                  whileHover={{ x: 2, transition: { duration: 0.15 } }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`text-sm font-mono font-bold ${item.trend === "up" ? "text-emerald-400" : "text-rose-400"}`}>
+                    <span className={`text-sm font-mono ${item.trend === "up" ? "text-emerald-400" : "text-red-400"}`}>
                       {item.trend === "up" ? "↑" : "↓"}
                     </span>
-                    <span className="text-xs sm:text-sm text-zinc-300 font-outfit">{item.name}</span>
+                    <span className="text-sm text-zinc-300">{item.name}</span>
                     {item.inResume ? (
-                      <span className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded border bg-emerald-950/40 text-emerald-400 border-emerald-900/40 uppercase">active</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded border font-mono bg-emerald-950/30 text-emerald-500 border-emerald-900/50">In resume</span>
                     ) : (
-                      <span className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded border bg-rose-950/30 text-rose-400 border-rose-900/40 uppercase">gap</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded border font-mono bg-red-950/30 text-red-500 border-red-900/50">Missing</span>
                     )}
                   </div>
-                  <span className={`text-xs font-mono font-semibold ${item.trend === "up" ? "text-emerald-400" : "text-rose-400"}`}>
+                  <span className={`text-xs font-mono font-semibold ${item.trend === "up" ? "text-emerald-400" : "text-red-400"}`}>
                     {item.pct > 0 ? "+" : ""}{item.pct}% YoY
                   </span>
                 </motion.div>
@@ -781,115 +774,114 @@ export default function RoadmapPage() {
             </motion.div>
           </SectionCard>
 
-          {/* Dynamic Learning Path Filters & Grid */}
-          <div className="space-y-5">
-            {/* Filter controls tabs */}
+          {/* ── Dynamic Learning Path ── */}
+          <div>
+            {/* Filter tabs */}
             <motion.div
-              className="flex items-center gap-2 flex-wrap"
+              className="flex items-center gap-1 flex-wrap mb-4"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.35 }}
             >
-              {STAGE_FILTERS.map(f => {
-                const isActive = activeFilter === f.key;
-                return (
-                  <motion.button
-                    key={f.key}
-                    onClick={() => setActiveFilter(f.key)}
-                    whileTap={{ scale: 0.97 }}
-                    className="shrink-0"
-                  >
-                    <InteractiveButton variant={isActive ? "primary" : "secondary"} className="py-2.5 px-4 font-mono text-[10px] tracking-widest uppercase flex items-center gap-2">
-                      <span>{f.label}</span>
-                      {f.count !== undefined && (
-                        <span className={`text-[10px] font-mono rounded-md px-1.5 py-0.2 ${isActive ? "bg-zinc-800 text-zinc-400" : "bg-zinc-950 text-zinc-600"}`}>{f.count}</span>
-                      )}
-                    </InteractiveButton>
-                  </motion.button>
-                );
-              })}
+              {STAGE_FILTERS.map(f => (
+                <motion.button
+                  key={f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors font-mono ${
+                    activeFilter === f.key
+                      ? "bg-zinc-800 text-zinc-100 border-zinc-600"
+                      : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-300 hover:border-zinc-700"
+                  }`}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {f.label}
+                  {f.count !== undefined && (
+                    <span className={`text-xs ${activeFilter === f.key ? "text-zinc-400" : "text-zinc-700"}`}>{f.count}</span>
+                  )}
+                </motion.button>
+              ))}
             </motion.div>
 
-            {/* Stage headers + Skill cards */}
-            <div className="space-y-6">
-              {(["critical", "roi", "differentiator", "advanced", "growth"] as SkillNode["stage"][]).map(stage => {
-                const stageNodes = filteredRoadmap.filter(n => n.stage === stage);
-                if (stageNodes.length === 0) return null;
-                const meta = STAGE_META[stage];
-                return (
-                  <div key={stage} className="space-y-4">
-                    <motion.div
-                      className="flex items-center justify-between gap-4 pb-2 border-b border-zinc-900"
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <span className={`text-[10px] font-mono tracking-widest font-bold uppercase ${meta.color}`}>{meta.label}</span>
-                      <span className="text-[10px] text-zinc-600 font-outfit text-right leading-none uppercase tracking-wider">{meta.description}</span>
-                    </motion.div>
-                    <div className="grid grid-cols-1 gap-3.5">
-                      {stageNodes.map((node, i) => (
-                        <SkillCard key={node.name} node={node} index={i} />
-                      ))}
-                    </div>
+            {/* Stage group headers + cards */}
+            {(["critical", "roi", "differentiator", "advanced", "growth"] as SkillNode["stage"][]).map(stage => {
+              const stageNodes = filteredRoadmap.filter(n => n.stage === stage);
+              if (stageNodes.length === 0) return null;
+              const meta = STAGE_META[stage];
+              return (
+                <div key={stage} className="mb-6">
+                  <motion.div
+                    className="flex items-center gap-3 mb-3"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <span className={`text-xs font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
+                    <div className="flex-1 h-px bg-zinc-800" />
+                    <span className="text-xs text-zinc-600">{meta.description}</span>
+                  </motion.div>
+                  <div className="space-y-3">
+                    {stageNodes.map((node, i) => (
+                      <SkillCard key={node.name} node={node} index={i} />
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Market Impact Insights */}
-          <SectionCard title="Hiring ROI Forecasts" icon={<BarChart2 className="w-4.5 h-4.5" />} delay={2} defaultOpen={false}>
-            <p className="text-xs text-zinc-500 mb-5 font-outfit">
-              Simulated score gains showing how learning actions adjust your overall recruiter relevance indices.
+          {/* ── Market Impact Insights ── */}
+          <SectionCard title="Market Impact Insights" icon={<BarChart2 className="w-4 h-4" />} delay={2} defaultOpen={false}>
+            <p className="text-xs text-zinc-500 mb-5">
+              How each learning investment translates to recruiter perception and hiring probability.
             </p>
-            <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={staggerContainer} initial="hidden" animate="visible">
+            <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
               {roadmap.slice(0, 4).map((node, i) => (
                 <motion.div
                   key={node.name}
                   variants={fadeUp}
                   custom={i}
+                  className="border border-zinc-800 rounded-lg p-4 bg-zinc-900"
+                  whileHover={{ borderColor: "rgb(63 63 70)", transition: { duration: 0.15 } }}
                 >
-                  <SpatialPanel glow={true} className="border-zinc-900 bg-zinc-950/20 p-4 hover:border-zinc-800 transition-colors shadow-lg h-full flex flex-col justify-between gap-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <span className="text-xs sm:text-sm font-semibold text-zinc-200 font-outfit">{node.name}</span>
-                        {node.missingFrom && <span className="text-[9px] font-mono tracking-widest font-bold px-1.5 py-0.5 rounded bg-rose-950/40 text-rose-400 border border-rose-900/30 uppercase">gap</span>}
-                      </div>
-                      <AnimatedBar
-                        pct={node.recruiterRelevance}
-                        color={node.recruiterRelevance >= 85 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-amber-500"}
-                        delay={i * 0.08}
-                      />
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-200">{node.name}</span>
+                      {node.missingFrom && <span className="ml-2 text-xs text-red-500 font-mono">missing</span>}
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-2 border-t border-zinc-900/60">
-                      <span>Demand: <span className={node.marketDemand === "Surging" ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>{node.marketDemand}</span></span>
-                      <span>Target index: <span className="text-zinc-300 font-bold">{node.recruiterRelevance}%</span></span>
-                    </div>
-                  </SpatialPanel>
+                    <span className={`text-xs font-mono font-semibold ${node.recruiterRelevance >= 85 ? "text-emerald-400" : "text-amber-400"}`}>
+                      {node.recruiterRelevance}% relevance
+                    </span>
+                  </div>
+                  <AnimatedBar
+                    pct={node.recruiterRelevance}
+                    color={node.recruiterRelevance >= 85 ? "bg-emerald-500" : "bg-amber-500"}
+                    delay={i * 0.08}
+                  />
+                  <div className="mt-2 flex items-center gap-4 text-xs">
+                    <span className="text-zinc-600">Companies: <span className="text-zinc-400">{node.companies.slice(0, 3).join(", ")}</span></span>
+                    <span className="text-zinc-600">Demand: <span className={node.marketDemand === "Surging" ? "text-emerald-400" : "text-amber-400"}>{node.marketDemand}</span></span>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
           </SectionCard>
 
-          {/* Live adaptation notice spatial alert */}
+          {/* ── Live adaptation notice ── */}
           <motion.div
             variants={fadeUp}
             custom={3}
             initial="hidden"
             animate="visible"
+            className="border border-zinc-800 rounded-xl bg-zinc-900 px-5 py-4 flex items-start gap-3"
           >
-            <SpatialPanel glow={true} className="border-zinc-900 bg-zinc-950/40 p-5 flex flex-col sm:flex-row items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)] mt-0.5">
-                <Activity className="w-4.5 h-4.5 text-zinc-400 animate-pulse" />
-              </div>
-              <div className="space-y-1.5 flex-1 min-w-0 font-outfit">
-                <p className="text-xs sm:text-sm font-semibold text-zinc-300 leading-snug">System Adaptability Telemetry Notice</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">
-                  Market demand models indicate Docker and Kubernetes hiring volume has spiked 38–44% YoY, positioning infrastructure automation as a prime engineering separator. System design continues to represent the absolute highest-value telemetry skill. Telemetry streams regenerate instantly on each resume matrix ingestion.
-                </p>
-              </div>
-            </SpatialPanel>
+            <Activity className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-zinc-300 mb-0.5">Roadmap updated based on recent backend hiring demand increases</p>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Docker and Kubernetes demand increased 38–44% YoY. System Design remains the highest-value skill for senior engineering roles.
+                This roadmap is regenerated each time you update your resume.
+              </p>
+            </div>
           </motion.div>
 
         </div>
@@ -898,25 +890,20 @@ export default function RoadmapPage() {
   );
 }
 
-// ── Hero pill (capsule gauges equivalents) ────────────────────────────────────
+// ── Hero pill ──────────────────────────────────────────────────────────────────
 
 function HeroPill({ value, label, color = "text-zinc-100", suffix = "" }: {
   value: number; label: string; color?: string; suffix?: string;
 }) {
   return (
     <motion.div
-      className="flex flex-col items-center justify-center border border-zinc-900/80 rounded-xl px-5 py-3.5 bg-zinc-950/80 relative overflow-hidden min-w-[90px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)]"
-      whileHover={{
-        y: -2,
-        borderColor: "rgba(255,255,255,0.1)",
-        boxShadow: "0 10px 20px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.05)",
-      }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="flex flex-col items-center justify-center border border-zinc-800 rounded-lg px-4 py-3 bg-zinc-950"
+      whileHover={{ borderColor: "rgb(63 63 70)", backgroundColor: "rgb(24 24 27)", transition: { duration: 0.2 } }}
     >
-      <span className={`text-2xl font-bold font-mono tracking-tight ${color} relative z-10`}>
+      <span className={`text-xl font-bold font-mono ${color}`}>
         <AnimatedNumber value={value} suffix={suffix} />
       </span>
-      <span className="text-[9px] font-mono tracking-widest text-zinc-500 mt-1.5 uppercase text-center whitespace-nowrap relative z-10">{label}</span>
+      <span className="text-xs text-zinc-500 mt-0.5 text-center whitespace-nowrap">{label}</span>
     </motion.div>
   );
 }

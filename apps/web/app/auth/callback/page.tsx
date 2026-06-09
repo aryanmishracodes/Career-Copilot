@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "../../../contexts/AuthContext";
 
-const API = "http://localhost:4000/api/v1";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
 
 function AuthCallbackHandler() {
   const searchParams = useSearchParams();

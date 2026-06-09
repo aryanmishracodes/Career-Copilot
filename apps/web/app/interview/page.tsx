@@ -32,7 +32,7 @@ import type {
 
 import { SpatialPanel, InteractiveButton, AmbientGlow, NeuralPulse } from "../../components/ui/primitives";
 
-const API = "http://localhost:4000/api/v1";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
 const DEFAULT_MAX_QUESTIONS = 10;
 
 export default function InterviewPage() {
@@ -274,10 +274,15 @@ export default function InterviewPage() {
               transition={{ duration: 0.3 }}
             >
               <Link href="/dashboard">
-                <InteractiveButton variant="secondary" className="px-3.5 py-1.5 flex items-center gap-1.5">
+                <motion.div
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-zinc-900 border border-transparent hover:border-zinc-800 cursor-pointer"
+                  whileHover={{ x: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Dashboard
-                </InteractiveButton>
+                </motion.div>
               </Link>
             </motion.div>
 

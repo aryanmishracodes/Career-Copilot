@@ -54,6 +54,9 @@ interface ParsedData {
   action_verbs_used?: string[];
   metrics_found?: number;
   improvement_tips?: string[];
+  role_fit?: { role: string; pct: number; missing: string[] }[];
+  recruiter_signals?: { positive: string[]; negative: string[] };
+  shortlist_probability?: number;
   experience?: any[];
   education?: any[];
   projects?: any[];
@@ -453,7 +456,8 @@ export default function ResumePage() {
   // ── Load previous resume on mount ─────────────────────────────────────────
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:4000/api/v1/resumes/latest", {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    fetch(`${apiBase}/api/v1/resumes/latest`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -463,16 +467,17 @@ export default function ResumePage() {
           setIsDone(true);
         }
       })
-      .catch(() => {/* no previous resume */});
+      .catch(() => {/* no previous resume */ });
   }, [token]);
 
   // Polling logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resumeId && isUploading) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`http://localhost:4000/api/v1/resumes/${resumeId}/status`, {
+          const res = await fetch(`${apiBase}/api/v1/resumes/${resumeId}/status`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await res.json();
@@ -511,7 +516,8 @@ export default function ResumePage() {
     formData.append("resume", file);
 
     try {
-      const res = await fetch("http://localhost:4000/api/v1/resumes/upload", {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const res = await fetch(`${apiBase}/api/v1/resumes/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -541,9 +547,9 @@ export default function ResumePage() {
 
   const skills = parsedData?.skills || [];
   const ats = parsedData?.ats_score;
-  const roleFit = parsedData ? deriveRoleFit(skills) : [];
-  const recruiterSignals = parsedData ? deriveRecruiterSignals(parsedData) : { positive: [], negative: [] };
-  const shortlistPct = parsedData ? deriveShortlistProbability(parsedData) : 0;
+  const roleFit = parsedData?.role_fit || (parsedData ? deriveRoleFit(skills) : []);
+  const recruiterSignals = parsedData?.recruiter_signals || (parsedData ? deriveRecruiterSignals(parsedData) : { positive: [], negative: [] });
+  const shortlistPct = parsedData?.shortlist_probability ?? (parsedData ? deriveShortlistProbability(parsedData) : 0);
   const tier = ats ? deriveResumeTier(ats.total_score) : null;
   const skillGroups = groupSkillsByDomain(skills);
 
@@ -568,10 +574,15 @@ export default function ResumePage() {
           <div className="max-w-5xl mx-auto flex items-center justify-between w-full">
             <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
               <Link href="/dashboard">
-                <InteractiveButton variant="secondary" className="px-3.5 py-1.5 flex items-center gap-1.5">
+                <motion.div
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-zinc-900 border border-transparent hover:border-zinc-800 cursor-pointer"
+                  whileHover={{ x: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Dashboard
-                </InteractiveButton>
+                </motion.div>
               </Link>
             </motion.div>
 
@@ -654,32 +665,33 @@ export default function ResumePage() {
                       <SpatialPanel
                         glow={true}
                         interactive={true}
-                        className={`border border-dashed p-12 text-center transition-all duration-300 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center gap-5 ${
-                          isDragOver
+                        className={`border border-dashed p-0 transition-all duration-300 rounded-2xl relative overflow-hidden ${isDragOver
                             ? "border-violet-500 bg-violet-500/[0.04] scale-[1.01]"
                             : "border-zinc-800 bg-zinc-950/20 hover:border-zinc-600 hover:bg-zinc-900/10"
-                        }`}
+                          }`}
                       >
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleFileChange}
-                          className="hidden"
-                          accept=".pdf,.docx,.doc,.txt"
-                        />
+                        <div className="flex flex-col items-center justify-center gap-5 p-12 text-center w-full h-full">
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept=".pdf,.docx,.doc,.txt"
+                          />
 
-                        <motion.div
-                          className="w-14 h-14 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center relative overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)]"
-                          whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.12)" }}
-                          transition={springConfig}
-                        >
-                          <Upload className="w-5 h-5 text-zinc-400" />
-                        </motion.div>
-                        <div className="space-y-1">
-                          <p className="text-zinc-200 font-semibold font-outfit text-sm sm:text-base">
-                            {isDragOver ? "Release matrix to parse" : "Drop resume here or browse files"}
-                          </p>
-                          <p className="text-zinc-500 text-xs font-mono tracking-wider uppercase">PDF, DOCX, DOC, TXT — up to 5 MB</p>
+                          <motion.div
+                            className="w-14 h-14 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center relative overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)]"
+                            whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.12)" }}
+                            transition={springConfig}
+                          >
+                            <Upload className="w-5 h-5 text-zinc-400 block -translate-y-[1px]" />
+                          </motion.div>
+                          <div className="space-y-1">
+                            <p className="text-zinc-200 font-semibold font-outfit text-sm sm:text-base">
+                              {isDragOver ? "Release matrix to parse" : "Drop resume here or browse files"}
+                            </p>
+                            <p className="text-zinc-500 text-xs font-mono tracking-wider uppercase">PDF, DOCX, DOC, TXT — up to 5 MB</p>
+                          </div>
                         </div>
                       </SpatialPanel>
                     </motion.div>
@@ -747,8 +759,8 @@ export default function ResumePage() {
                           className={`text-[10px] font-bold px-2.5 py-1 rounded-md border font-mono tracking-widest uppercase
                             ${tier.tier === "Tier 1" ? "bg-emerald-950/50 text-emerald-400 border-emerald-900/40" :
                               tier.tier === "Tier 2" ? "bg-blue-950/50 text-blue-400 border-blue-900/40" :
-                              tier.tier === "Tier 3" ? "bg-amber-950/50 text-amber-400 border-amber-900/40" :
-                              "bg-red-950/50 text-rose-400 border-red-900/40"}`}
+                                tier.tier === "Tier 3" ? "bg-amber-950/50 text-amber-400 border-amber-900/40" :
+                                  "bg-red-950/50 text-rose-400 border-red-900/40"}`}
                         >
                           {tier.tier}
                         </motion.span>
@@ -785,7 +797,7 @@ export default function ResumePage() {
                       label="ATS Score"
                       color={
                         (ats?.total_score ?? 0) >= 75 ? "text-emerald-400" :
-                        (ats?.total_score ?? 0) >= 55 ? "text-amber-400" : "text-rose-400"
+                          (ats?.total_score ?? 0) >= 55 ? "text-amber-400" : "text-rose-400"
                       }
                     />
                     <StatPill
@@ -795,7 +807,7 @@ export default function ResumePage() {
                       label="Shortlist Prob"
                       color={
                         shortlistPct >= 65 ? "text-emerald-400" :
-                        shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"
+                          shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"
                       }
                     />
                     <StatPill
@@ -811,259 +823,264 @@ export default function ResumePage() {
             {/* Two Column Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-              {/* ATS Analysis */}
-              <SectionCard title="ATS Score Telemetry" icon={<Target className="w-4.5 h-4.5" />} delay={0}>
-                <div className="mb-6 flex items-center gap-4.5 pb-4 border-b border-zinc-900">
-                  <motion.div
-                    className="text-4xl font-black font-mono text-zinc-100"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1, ...springConfig }}
-                  >
-                    <AnimatedNumber value={ats?.total_score ?? 0} />
-                  </motion.div>
-                  <motion.div initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-0.5">
-                    <div className={`text-sm font-bold font-outfit
-                      ${ats?.grade === "Excellent" ? "text-emerald-400" :
-                        ats?.grade === "Good" ? "text-blue-400" :
-                        ats?.grade === "Average" ? "text-amber-400" : "text-rose-400"}`}>
-                      {ats?.grade} Grade
-                    </div>
-                    <div className="text-xs text-zinc-500 font-mono tracking-wide uppercase">
-                      {ats?.word_count} words ·{" "}
-                      {ats?.word_count && ats.word_count >= 300 && ats.word_count <= 900
-                        ? "Optimal substance density" : ats?.word_count && ats.word_count < 300 ? "Too short" : "Too long"}
-                    </div>
-                  </motion.div>
-                </div>
-                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-0.5">
-                  {ats?.breakdown && Object.entries(ats.breakdown).map(([key, val], i) => (
-                    <ScoreRow key={key} label={val.label} score={val.score} max={val.max} reasoning={atsReasoningMap[key]} index={i} />
-                  ))}
-                </motion.div>
-              </SectionCard>
-
-              {/* Recruiter Simulation */}
-              <SectionCard title="Recruiter Signal Simulation" icon={<Users className="w-4.5 h-4.5" />} delay={1}>
-                <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
-                  Simulated recruiter scan index calculated from visual structures, active keywords, and impact metrics.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
-                    <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Optimal Highlights</p>
-                    <ul className="space-y-2">
-                      {recruiterSignals.positive.length > 0 ? recruiterSignals.positive.map((s, i) => (
-                        <motion.li key={i} variants={fadeUp} custom={i} className="flex items-start gap-2.5 text-xs text-zinc-300 leading-relaxed font-outfit">
-                          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 + 0.1, ...springConfig }} className="shrink-0 mt-0.5">
-                            <CheckCircle className="w-4 h-4 text-emerald-400" />
-                          </motion.span>
-                          <span>{s}</span>
-                        </motion.li>
-                      )) : <li className="text-xs text-zinc-600 font-outfit">No highlights registered.</li>}
-                    </ul>
-                  </motion.div>
-                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
-                    <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Gaps & Flags</p>
-                    <ul className="space-y-2">
-                      {recruiterSignals.negative.length > 0 ? recruiterSignals.negative.map((s, i) => (
-                        <motion.li key={i} variants={fadeUp} custom={i} className="flex items-start gap-2.5 text-xs text-zinc-300 leading-relaxed font-outfit">
-                          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 + 0.1, ...springConfig }} className="shrink-0 mt-0.5">
-                            <AlertTriangle className="w-4 h-4 text-amber-500" />
-                          </motion.span>
-                          <span>{s}</span>
-                        </motion.li>
-                      )) : <li className="text-xs text-zinc-500 font-outfit">No high-risk concerns detected.</li>}
-                    </ul>
-                  </motion.div>
-                </div>
-                <div className="border-t border-zinc-900/60 pt-4.5 flex items-center justify-between gap-4">
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Average Pass Probability</p>
-                    <p className="text-[10px] text-zinc-600 font-outfit">Calculated from aggregate keyword density patterns</p>
-                  </div>
-                  <motion.span
-                    className={`text-2xl font-bold font-mono ${shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"}`}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3, ...springConfig }}
-                  >
-                    <AnimatedNumber value={shortlistPct} suffix="%" />
-                  </motion.span>
-                </div>
-              </SectionCard>
-
-              {/* Role Fit */}
-              <SectionCard title="Vector Alignment Score" icon={<BarChart2 className="w-4.5 h-4.5" />} delay={2}>
-                <p className="text-xs text-zinc-500 mb-5 font-outfit">
-                  Weighted category fit tracking how well your resume matches technical roles based on skill density models.
-                </p>
-                <motion.div className="space-y-4.5" variants={staggerContainer} initial="hidden" animate="visible">
-                  {roleFit.map((r, i) => (
-                    <motion.div key={r.role} variants={fadeUp} custom={i} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {i === 0 && (
-                            <motion.span
-                              className="text-[9px] font-mono tracking-widest bg-zinc-900 text-zinc-400 border border-zinc-800 px-1.5 py-0.5 rounded-md"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: 0.2, ...springConfig }}
-                            >
-                              Prime
-                            </motion.span>
-                          )}
-                          <span className="text-xs text-zinc-300 font-outfit">{r.role}</span>
-                        </div>
-                        <span className={`text-xs font-mono font-semibold ${r.pct >= 70 ? "text-emerald-400" : r.pct >= 50 ? "text-amber-400" : "text-zinc-500"}`}>
-                          <AnimatedNumber value={r.pct} suffix="%" />
-                        </span>
-                      </div>
-                      <AnimatedBar pct={r.pct} color={r.pct >= 70 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : r.pct >= 50 ? "bg-amber-500" : "bg-zinc-700"} delay={i * 0.08} />
-                      {r.missing.length > 0 && (
-                        <p className="text-[10px] text-zinc-500 flex items-center gap-1 mt-1 font-mono">
-                          <ArrowRight className="w-3 h-3 text-zinc-700" />
-                          Missing targets: {r.missing.join(", ")}
-                        </p>
-                      )}
+              {/* Left Column Stack */}
+              <div className="flex flex-col gap-6">
+                {/* ATS Analysis */}
+                <SectionCard title="ATS Score Telemetry" icon={<Target className="w-4.5 h-4.5" />} delay={0}>
+                  <div className="mb-6 flex items-center gap-4.5 pb-4 border-b border-zinc-900">
+                    <motion.div
+                      className="text-4xl font-black font-mono text-zinc-100"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1, ...springConfig }}
+                    >
+                      <AnimatedNumber value={ats?.total_score ?? 0} />
                     </motion.div>
-                  ))}
-                </motion.div>
-              </SectionCard>
+                    <motion.div initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-0.5">
+                      <div className={`text-sm font-bold font-outfit
+                        ${ats?.grade === "Excellent" ? "text-emerald-400" :
+                          ats?.grade === "Good" ? "text-blue-400" :
+                            ats?.grade === "Average" ? "text-amber-400" : "text-rose-400"}`}>
+                        {ats?.grade} Grade
+                      </div>
+                      <div className="text-xs text-zinc-500 font-mono tracking-wide uppercase">
+                        {ats?.word_count} words ·{" "}
+                        {ats?.word_count && ats.word_count >= 300 && ats.word_count <= 900
+                          ? "Optimal substance density" : ats?.word_count && ats.word_count < 300 ? "Too short" : "Too long"}
+                      </div>
+                    </motion.div>
+                  </div>
+                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-0.5">
+                    {ats?.breakdown && Object.entries(ats.breakdown).map(([key, val], i) => (
+                      <ScoreRow key={key} label={val.label} score={val.score} max={val.max} reasoning={atsReasoningMap[key]} index={i} />
+                    ))}
+                  </motion.div>
+                </SectionCard>
 
-              {/* Skill Intelligence */}
-              <SectionCard title="Telemetry Cluster Groups" icon={<Zap className="w-4.5 h-4.5" />} delay={3}>
-                <p className="text-xs text-zinc-500 mb-5 font-outfit">
-                  Extracted technologies grouped systematically by domain boundaries, scaled by context mention scores.
-                </p>
-                {Object.keys(skillGroups).length > 0 ? (
-                  <motion.div className="space-y-6" variants={staggerContainer} initial="hidden" animate="visible">
-                    {Object.entries(skillGroups).map(([domain, domainSkills], di) => (
-                      <motion.div key={domain} variants={fadeUp} custom={di} className="space-y-2">
-                        <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">{domain}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {domainSkills.map((skill, si) => {
-                            const highConf = skill.confidence_score >= 85;
-                            const medConf = skill.confidence_score >= 65;
-                            return (
-                              <motion.div
-                                key={skill.name}
-                                className="flex items-center gap-2 border border-zinc-900 bg-zinc-950/60 rounded-xl px-3 py-1.5 cursor-default shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)] hover:border-zinc-800 hover:bg-zinc-900/10 transition-colors"
-                                initial={{ opacity: 0, scale: 0.9 }}
+                {/* Role Fit */}
+                <SectionCard title="Vector Alignment Score" icon={<BarChart2 className="w-4.5 h-4.5" />} delay={2}>
+                  <p className="text-xs text-zinc-500 mb-5 font-outfit">
+                    Weighted category fit tracking how well your resume matches technical roles based on skill density models.
+                  </p>
+                  <motion.div className="space-y-4.5" variants={staggerContainer} initial="hidden" animate="visible">
+                    {roleFit.map((r, i) => (
+                      <motion.div key={r.role} variants={fadeUp} custom={i} className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {i === 0 && (
+                              <motion.span
+                                className="text-[9px] font-mono tracking-widest bg-zinc-900 text-zinc-400 border border-zinc-800 px-1.5 py-0.5 rounded-md"
+                                initial={{ opacity: 0, scale: 0.85 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: di * 0.04 + si * 0.02, duration: 0.25 }}
-                                whileHover={{ y: -1 }}
+                                transition={{ delay: 0.2, ...springConfig }}
                               >
-                                <span className="text-xs text-zinc-200 font-outfit">{skill.name}</span>
-                                {/* Mini HSL backglow confidence dot */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <span className={`w-1.5 h-1.5 rounded-full ${
-                                    highConf ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" :
-                                    medConf ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" : "bg-zinc-600"
-                                  }`} />
-                                  <span className="text-[9px] font-mono text-zinc-500">{skill.confidence_score}%</span>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
+                                Prime
+                              </motion.span>
+                            )}
+                            <span className="text-xs text-zinc-300 font-outfit">{r.role}</span>
+                          </div>
+                          <span className={`text-xs font-mono font-semibold ${r.pct >= 70 ? "text-emerald-400" : r.pct >= 50 ? "text-amber-400" : "text-zinc-500"}`}>
+                            <AnimatedNumber value={r.pct} suffix="%" />
+                          </span>
                         </div>
+                        <AnimatedBar pct={r.pct} color={r.pct >= 70 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : r.pct >= 50 ? "bg-amber-500" : "bg-zinc-700"} delay={i * 0.08} />
+                        {r.missing.length > 0 && (
+                          <p className="text-[10px] text-zinc-500 flex items-center gap-1 mt-1 font-mono">
+                            <ArrowRight className="w-3 h-3 text-zinc-700" />
+                            Missing targets: {r.missing.join(", ")}
+                          </p>
+                        )}
                       </motion.div>
                     ))}
                   </motion.div>
-                ) : (
-                  <p className="text-xs text-zinc-600 font-outfit">No telemetry skills detected. Verify technological section formatting.</p>
-                )}
-              </SectionCard>
+                </SectionCard>
 
-              {/* Improvement Paths */}
-              <SectionCard title="Priority Optimization Gaps" icon={<TrendingUp className="w-4.5 h-4.5" />} delay={4}>
-                <p className="text-xs text-zinc-500 mb-5 font-outfit">
-                  Chronological recommendations designed to maximize ATS parsing metrics and human recruiter interest.
-                </p>
-                <motion.div className="space-y-2.5" variants={staggerContainer} initial="hidden" animate="visible">
-                  {(parsedData?.improvement_tips || []).map((tip, i) => (
-                    <motion.div
-                      key={i}
-                      variants={fadeUp}
-                      custom={i}
-                    >
-                      <SpatialPanel glow={false} interactive={true} className="p-0 overflow-hidden border-zinc-900 bg-zinc-950/20 hover:bg-zinc-900/10">
-                        <motion.button
-                          onClick={() => setExpandedTip(expandedTip === i ? null : i)}
-                          className="w-full flex items-center justify-between px-4 py-3 text-left font-outfit"
-                          whileTap={{ scale: 0.995 }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-mono text-zinc-600 w-5">{String(i + 1).padStart(2, "0")}</span>
-                            <span className="text-xs sm:text-sm text-zinc-200">{tip}</span>
-                          </div>
-                          <motion.span animate={{ rotate: expandedTip === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                            <ChevronDown className="w-4 h-4 text-zinc-600 shrink-0 ml-3" />
-                          </motion.span>
-                        </motion.button>
-                        <AnimatePresence>
-                          {expandedTip === i && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                              className="border-t border-zinc-900"
-                            >
-                              <div className="px-4.5 pb-3.5 pt-2.5 bg-zinc-950/60 font-outfit">
-                                <p className="text-xs text-zinc-500 leading-relaxed flex items-start gap-2.5">
-                                  <Info className="w-4 h-4 shrink-0 text-zinc-600" />
-                                  <span>This recommendation acts directly upon a structural telemetry gap detected in our scan. Fixing it yields immediate return on ATS compatibility runs.</span>
-                                </p>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </SpatialPanel>
+                {/* Improvement Paths */}
+                <SectionCard title="Priority Optimization Gaps" icon={<TrendingUp className="w-4.5 h-4.5" />} delay={4}>
+                  <p className="text-xs text-zinc-500 mb-5 font-outfit">
+                    Chronological recommendations designed to maximize ATS parsing metrics and human recruiter interest.
+                  </p>
+                  <motion.div className="space-y-2.5" variants={staggerContainer} initial="hidden" animate="visible">
+                    {(parsedData?.improvement_tips || []).map((tip, i) => (
+                      <motion.div
+                        key={i}
+                        variants={fadeUp}
+                        custom={i}
+                      >
+                        <SpatialPanel glow={false} interactive={true} className="p-0 overflow-hidden border-zinc-900 bg-zinc-950/20 hover:bg-zinc-900/10">
+                          <motion.button
+                            onClick={() => setExpandedTip(expandedTip === i ? null : i)}
+                            className="w-full flex items-center justify-between px-4 py-3 text-left font-outfit"
+                            whileTap={{ scale: 0.995 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-[10px] font-mono text-zinc-600 w-5">{String(i + 1).padStart(2, "0")}</span>
+                              <span className="text-xs sm:text-sm text-zinc-200">{tip}</span>
+                            </div>
+                            <motion.span animate={{ rotate: expandedTip === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
+                              <ChevronDown className="w-4 h-4 text-zinc-600 shrink-0 ml-3" />
+                            </motion.span>
+                          </motion.button>
+                          <AnimatePresence>
+                            {expandedTip === i && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                className="border-t border-zinc-900"
+                              >
+                                <div className="px-4.5 pb-3.5 pt-2.5 bg-zinc-950/60 font-outfit">
+                                  <p className="text-xs text-zinc-500 leading-relaxed flex items-start gap-2.5">
+                                    <Info className="w-4 h-4 shrink-0 text-zinc-600" />
+                                    <span>This recommendation acts directly upon a structural telemetry gap detected in our scan. Fixing it yields immediate return on ATS compatibility runs.</span>
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </SpatialPanel>
+                      </motion.div>
+                    ))}
+                    {(!parsedData?.improvement_tips || parsedData.improvement_tips.length === 0) && (
+                      <p className="text-xs text-zinc-600 font-outfit">No priority improvements generated.</p>
+                    )}
+                  </motion.div>
+                </SectionCard>
+              </div>
+
+              {/* Right Column Stack */}
+              <div className="flex flex-col gap-6">
+                {/* Recruiter Simulation */}
+                <SectionCard title="Recruiter Signal Simulation" icon={<Users className="w-4.5 h-4.5" />} delay={1}>
+                  <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
+                    Simulated recruiter scan index calculated from visual structures, active keywords, and impact metrics.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                    <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
+                      <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Optimal Highlights</p>
+                      <ul className="space-y-2">
+                        {recruiterSignals.positive.length > 0 ? recruiterSignals.positive.map((s, i) => (
+                          <motion.li key={i} variants={fadeUp} custom={i} className="flex items-start gap-2.5 text-xs text-zinc-300 leading-relaxed font-outfit">
+                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 + 0.1, ...springConfig }} className="shrink-0 mt-0.5">
+                              <CheckCircle className="w-4 h-4 text-emerald-400" />
+                            </motion.span>
+                            <span>{s}</span>
+                          </motion.li>
+                        )) : <li className="text-xs text-zinc-600 font-outfit">No highlights registered.</li>}
+                      </ul>
                     </motion.div>
-                  ))}
-                  {(!parsedData?.improvement_tips || parsedData.improvement_tips.length === 0) && (
-                    <p className="text-xs text-zinc-600 font-outfit">No priority improvements generated.</p>
-                  )}
-                </motion.div>
-              </SectionCard>
+                    <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
+                      <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Gaps & Flags</p>
+                      <ul className="space-y-2">
+                        {recruiterSignals.negative.length > 0 ? recruiterSignals.negative.map((s, i) => (
+                          <motion.li key={i} variants={fadeUp} custom={i} className="flex items-start gap-2.5 text-xs text-zinc-300 leading-relaxed font-outfit">
+                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 + 0.1, ...springConfig }} className="shrink-0 mt-0.5">
+                              <AlertTriangle className="w-4 h-4 text-amber-500" />
+                            </motion.span>
+                            <span>{s}</span>
+                          </motion.li>
+                        )) : <li className="text-xs text-zinc-500 font-outfit">No high-risk concerns detected.</li>}
+                      </ul>
+                    </motion.div>
+                  </div>
+                  <div className="border-t border-zinc-900/60 pt-4.5 flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Average Pass Probability</p>
+                      <p className="text-[10px] text-zinc-600 font-outfit">Calculated from aggregate keyword density patterns</p>
+                    </div>
+                    <motion.span
+                      className={`text-2xl font-bold font-mono ${shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"}`}
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3, ...springConfig }}
+                    >
+                      <AnimatedNumber value={shortlistPct} suffix="%" />
+                    </motion.span>
+                  </div>
+                </SectionCard>
 
-              {/* AI Reasoning */}
-              <SectionCard title="Telemetry Evidence Basis" icon={<FileText className="w-4.5 h-4.5" />} defaultOpen={false} delay={5}>
-                <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
-                  Underlying structural facts and weights calculated directly from your raw resume telemetry block.
-                </p>
-                <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
-                  <ReasoningBlock
-                    label="ATS Score Formula basis"
-                    items={[
-                      `Contact integrity: email ${parsedData?.contact?.email ? "validated" : "missing"}, phone ${parsedData?.contact?.phone ? "validated" : "missing"}, LinkedIn ${parsedData?.contact?.linkedin ? "validated" : "missing"}, GitHub ${parsedData?.contact?.github ? "validated" : "missing"}`,
-                      `Semantic sections: ${Object.entries(parsedData?.sections_found || {}).filter(([, v]) => v).map(([k]) => k).join(", ") || "none detected"}`,
-                      `Skill items: ${skills.length} target tags clusters across ${Object.keys(skillGroups).length} domains`,
-                      `Action verbs tracked: ${(parsedData?.action_verbs_used || []).slice(0, 6).join(", ") || "none"}`,
-                      `Measurable outcomes: ${parsedData?.metrics_found ?? 0} instances of quantified telemetry`,
-                      `Word-count: ${ats?.word_count ?? 0} words`,
-                    ]}
-                  />
-                  <ReasoningBlock
-                    label="Shortlist Probability weight"
-                    items={[
-                      `ATS compatibility indices contributes 50% weight (${ats?.total_score ?? 0} → ${Math.round((ats?.total_score ?? 0) * 0.5)} points)`,
-                      `Measurable outcome nodes contribute up to 20 points (${parsedData?.metrics_found ?? 0} detected → ${Math.min((parsedData?.metrics_found ?? 0) * 5, 20)} points)`,
-                      `Action verb active syntax contributes up to 15 points (${(parsedData?.action_verbs_used || []).length} verbs → ${Math.min((parsedData?.action_verbs_used || []).length * 1.5, 15)} points)`,
-                      `Overall skill matrix breadth contributes up to 15 points (${skills.length} skills → ${Math.min(skills.length * 0.5, 15)} points)`,
-                    ]}
-                  />
-                  <ReasoningBlock
-                    label="Skill Cluster density"
-                    items={[
-                      `Frontend nodes: ${(parsedData?.skills || []).filter(s => s.category === "frontend").map(s => s.name).join(", ") || "none"}`,
-                      `Backend nodes: ${(parsedData?.skills || []).filter(s => s.category === "backend").map(s => s.name).join(", ") || "none"}`,
-                      `DevOps / Cloud infrastructure: ${(parsedData?.skills || []).filter(s => s.category === "cloud").map(s => s.name).join(", ") || "none"}`,
-                      `AI / ML components: ${(parsedData?.skills || []).filter(s => s.category === "ai").map(s => s.name).join(", ") || "none"}`,
-                    ]}
-                  />
-                </motion.div>
-              </SectionCard>
+                {/* Skill Intelligence */}
+                <SectionCard title="Telemetry Cluster Groups" icon={<Zap className="w-4.5 h-4.5" />} delay={3}>
+                  <p className="text-xs text-zinc-500 mb-5 font-outfit">
+                    Extracted technologies grouped systematically by domain boundaries, scaled by context mention scores.
+                  </p>
+                  {Object.keys(skillGroups).length > 0 ? (
+                    <motion.div className="space-y-6" variants={staggerContainer} initial="hidden" animate="visible">
+                      {Object.entries(skillGroups).map(([domain, domainSkills], di) => (
+                        <motion.div key={domain} variants={fadeUp} custom={di} className="space-y-2">
+                          <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">{domain}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {domainSkills.map((skill, si) => {
+                              const highConf = skill.confidence_score >= 85;
+                              const medConf = skill.confidence_score >= 65;
+                              return (
+                                <motion.div
+                                  key={skill.name}
+                                  className="flex items-center gap-2 border border-zinc-900 bg-zinc-950/60 rounded-xl px-3 py-1.5 cursor-default shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)] hover:border-zinc-800 hover:bg-zinc-900/10 transition-colors"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: di * 0.04 + si * 0.02, duration: 0.25 }}
+                                  whileHover={{ y: -1 }}
+                                >
+                                  <span className="text-xs text-zinc-200 font-outfit">{skill.name}</span>
+                                  {/* Mini HSL backglow confidence dot */}
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${highConf ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" :
+                                        medConf ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" : "bg-zinc-600"
+                                      }`} />
+                                    <span className="text-[9px] font-mono text-zinc-500">{skill.confidence_score}%</span>
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <p className="text-xs text-zinc-600 font-outfit">No telemetry skills detected. Verify technological section formatting.</p>
+                  )}
+                </SectionCard>
+
+                {/* AI Reasoning */}
+                <SectionCard title="Telemetry Evidence Basis" icon={<FileText className="w-4.5 h-4.5" />} defaultOpen={false} delay={5}>
+                  <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
+                    Underlying structural facts and weights calculated directly from your raw resume telemetry block.
+                  </p>
+                  <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
+                    <ReasoningBlock
+                      label="ATS Score Formula basis"
+                      items={[
+                        `Contact integrity: email ${parsedData?.contact?.email ? "validated" : "missing"}, phone ${parsedData?.contact?.phone ? "validated" : "missing"}, LinkedIn ${parsedData?.contact?.linkedin ? "validated" : "missing"}, GitHub ${parsedData?.contact?.github ? "validated" : "missing"}`,
+                        `Semantic sections: ${Object.entries(parsedData?.sections_found || {}).filter(([, v]) => v).map(([k]) => k).join(", ") || "none detected"}`,
+                        `Skill items: ${skills.length} target tags clusters across ${Object.keys(skillGroups).length} domains`,
+                        `Action verbs tracked: ${(parsedData?.action_verbs_used || []).slice(0, 6).join(", ") || "none"}`,
+                        `Measurable outcomes: ${parsedData?.metrics_found ?? 0} instances of quantified telemetry`,
+                        `Word-count: ${ats?.word_count ?? 0} words`,
+                      ]}
+                    />
+                    <ReasoningBlock
+                      label="Shortlist Probability weight"
+                      items={[
+                        `ATS compatibility indices contributes 50% weight (${ats?.total_score ?? 0} → ${Math.round((ats?.total_score ?? 0) * 0.5)} points)`,
+                        `Measurable outcome nodes contribute up to 20 points (${parsedData?.metrics_found ?? 0} detected → ${Math.min((parsedData?.metrics_found ?? 0) * 5, 20)} points)`,
+                        `Action verb active syntax contributes up to 15 points (${(parsedData?.action_verbs_used || []).length} verbs → ${Math.min((parsedData?.action_verbs_used || []).length * 1.5, 15)} points)`,
+                        `Overall skill matrix breadth contributes up to 15 points (${skills.length} skills → ${Math.min(skills.length * 0.5, 15)} points)`,
+                      ]}
+                    />
+                    <ReasoningBlock
+                      label="Skill Cluster density"
+                      items={[
+                        `Frontend nodes: ${(parsedData?.skills || []).filter(s => s.category === "frontend").map(s => s.name).join(", ") || "none"}`,
+                        `Backend nodes: ${(parsedData?.skills || []).filter(s => s.category === "backend").map(s => s.name).join(", ") || "none"}`,
+                        `DevOps / Cloud infrastructure: ${(parsedData?.skills || []).filter(s => s.category === "cloud").map(s => s.name).join(", ") || "none"}`,
+                        `AI / ML components: ${(parsedData?.skills || []).filter(s => s.category === "ai").map(s => s.name).join(", ") || "none"}`,
+                      ]}
+                    />
+                  </motion.div>
+                </SectionCard>
+              </div>
 
             </div>
           </div>

@@ -8,7 +8,7 @@ import { Eye, EyeOff, AlertCircle, ArrowRight, Cpu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SpatialPanel, InteractiveButton, AmbientGlow, NeuralPulse } from "@/components/ui/primitives";
 
-const API = "http://localhost:4000/api/v1";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
 
 function GitHubIcon() {
   return (
@@ -129,13 +129,13 @@ function LoginForm() {
       {/* OAuth options */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <a href={getGoogleOAuthUrl()} className="block">
-          <InteractiveButton variant="glow" type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-800/60 bg-zinc-950/50 text-zinc-300 hover:text-white hover:border-zinc-700 font-sans transition-all text-xs">
+          <InteractiveButton variant="glow" type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-800/60 bg-zinc-950/50 text-zinc-300 hover:text-white hover:border-zinc-700 font-sans text-xs">
             <GoogleIcon />
             <span>Google</span>
           </InteractiveButton>
         </a>
         <a href={getGithubOAuthUrl()} className="block">
-          <InteractiveButton variant="glow" type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-800/60 bg-zinc-950/50 text-zinc-300 hover:text-white hover:border-zinc-700 font-sans transition-all text-xs">
+          <InteractiveButton variant="glow" type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-zinc-800/60 bg-zinc-950/50 text-zinc-300 hover:text-white hover:border-zinc-700 font-sans text-xs">
             <GitHubIcon />
             <span>GitHub</span>
           </InteractiveButton>
@@ -226,51 +226,86 @@ function LoginForm() {
   );
 }
 
+function IntelligencePreview() {
+  return (
+    <motion.div
+      className="max-w-md w-full relative z-10 space-y-8"
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+    >
+      <div className="space-y-2">
+        <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase font-mono">
+          System Overview
+        </p>
+        <h2 className="text-3xl font-bold text-zinc-100 font-outfit">
+          AI Career Operating System
+        </h2>
+        <p className="text-zinc-500 text-sm leading-relaxed max-w-sm">
+          Upload your resume once to initialize your personal career cockpit. Get deep telemetry, live market alignments, and simulated arenas.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3.5 max-w-sm">
+        {[
+          { label: "ATS Score Analysis", desc: "6-dimension screening report parsing structure, verbs, and achievements.", color: "bg-violet-500" },
+          { label: "Recruiter Simulation", desc: "Shortlist probability feedback calibrated against corporate search indexes.", color: "bg-cyan-500" },
+          { label: "Live Market Matching", desc: "Real-time job postings ranked by AI fit score against your parsed profile.", color: "bg-emerald-500" },
+          { label: "Adaptive Mock Interviews", desc: "Dynamic simulation arena tailored to your experience and target role.", color: "bg-amber-500" },
+        ].map((item, i) => (
+          <motion.div
+            key={item.label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
+          >
+            <SpatialPanel glow className="p-4 bg-zinc-950/20 border-zinc-900/60 rounded-xl relative overflow-hidden flex items-start gap-3.5 group hover:border-zinc-800 transition-colors">
+              <span className={`w-2 h-2 rounded-full ${item.color} shrink-0 mt-1.5 animate-pulse`} />
+              <div>
+                <p className="text-xs font-bold text-zinc-300 font-outfit">{item.label}</p>
+                <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">{item.desc}</p>
+              </div>
+            </SpatialPanel>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden bg-[#030303]">
+    <div className="min-h-screen flex relative overflow-hidden bg-[#030303]">
       {/* Background Backplates */}
-      <AmbientGlow size="lg" color="mixed" opacity={0.65} className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-      <AmbientGlow size="md" color="violet" opacity={0.25} className="-top-12 -right-12" />
+      <AmbientGlow size="lg" color="mixed" opacity={0.4} className="-top-40 left-1/4" />
+      <AmbientGlow size="md" color="violet" opacity={0.15} className="-bottom-20 -right-20" />
 
-      {/* Centered Panel wrapped in Suspense */}
-      <motion.div
-        className="w-full max-w-md relative z-10 group"
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 220, damping: 26 }}
-      >
-        <Suspense
-          fallback={
-            <SpatialPanel glow className="p-8 border-zinc-800 bg-zinc-950/40 text-center">
-              <div className="w-10 h-10 border-2 border-zinc-700 border-t-zinc-300 rounded-full mx-auto mb-4 animate-spin" />
-              <p className="text-zinc-500 text-sm">Deploying active credentials handler…</p>
-            </SpatialPanel>
-          }
+      {/* ── Left panel — form ── */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
+        <motion.div
+          className="w-full max-w-md relative z-10 group"
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 220, damping: 26 }}
         >
-          <LoginForm />
-        </Suspense>
-      </motion.div>
+          <Suspense
+            fallback={
+              <SpatialPanel glow className="p-8 border-zinc-800 bg-zinc-950/40 text-center">
+                <div className="w-10 h-10 border-2 border-zinc-700 border-t-zinc-300 rounded-full mx-auto mb-4 animate-spin" />
+                <p className="text-zinc-500 text-sm">Deploying active credentials handler…</p>
+              </SpatialPanel>
+            }
+          >
+            <LoginForm />
+          </Suspense>
+        </motion.div>
+      </div>
 
-      {/* ── Center Bottom Feature row (micro-spatial layout) ── */}
-      <motion.div
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-xl w-full mt-10 relative z-10"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
-      >
-        {[
-          { label: "ATS Score Analysis", desc: "6-dimension screening report" },
-          { label: "Recruiter Simulation", desc: "Shortlist probability feedback" },
-          { label: "Live Market Matching", desc: "AI skill-ranked vacancies" },
-          { label: "Adaptive Mock Interviews", desc: "Resume-calibrated responses" },
-        ].map((item, i) => (
-          <SpatialPanel key={item.label} glow className="p-3 text-center bg-zinc-950/20 border-zinc-900/60 rounded-xl relative overflow-hidden group">
-            <p className="text-[10px] font-bold text-zinc-300 font-display leading-tight truncate">{item.label}</p>
-            <p className="text-[9px] text-zinc-600 mt-0.5 leading-snug">{item.desc}</p>
-          </SpatialPanel>
-        ))}
-      </motion.div>
+      {/* ── Right panel — intelligence preview ── */}
+      <div className="hidden lg:flex flex-1 flex-col justify-center px-16 bg-zinc-950/30 border-l border-zinc-900 relative overflow-hidden">
+        <AmbientGlow size="md" color="violet" opacity={0.1} className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <IntelligencePreview />
+      </div>
     </div>
   );
 }

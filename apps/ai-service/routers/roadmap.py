@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.claude_client import claude
+from services.gemini_client import gemini_client
 from prompts.roadmap_gen import ROADMAP_GENERATION_PROMPT
 import json
 
@@ -20,17 +20,16 @@ async def generate_roadmap(req: RoadmapRequest):
             target_role=req.target_role
         )
         
-        response = await claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=4096,
-            system=prompt,
+        raw = await gemini_client.create_chat_completion(
+            system_instruction=prompt,
             messages=[{
                 "role": "user",
                 "content": "Please generate the roadmap JSON based on my profile."
-            }]
+            }],
+            max_tokens=4096
         )
 
-        raw = response.content[0].text.strip()
+        raw = raw.strip()
         if raw.startswith("```json"):
             raw = raw[7:]
         if raw.endswith("```"):
@@ -39,3 +38,4 @@ async def generate_roadmap(req: RoadmapRequest):
         return json.loads(raw.strip())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

@@ -25,15 +25,14 @@ export function SpatialPanel({
   glow = false,
   ...props
 }: SpatialPanelProps) {
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setCoords({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
   };
 
   const hoverAnimation = interactive
@@ -51,7 +50,7 @@ export function SpatialPanel({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "spatial-glass rounded-2xl p-6 relative overflow-hidden transition-colors duration-300",
+        "spatial-glass rounded-2xl p-6 relative overflow-hidden",
         interactive && "cursor-pointer",
         className
       )}
@@ -66,7 +65,7 @@ export function SpatialPanel({
           className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
             opacity: isHovered ? 0.9 : 0,
-            background: `radial-gradient(400px circle at ${coords.x}px ${coords.y}px, rgba(139, 92, 246, 0.07), transparent 80%)`,
+            background: `radial-gradient(400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(139, 92, 246, 0.07), transparent 80%)`,
           }}
         />
       )}
@@ -76,7 +75,7 @@ export function SpatialPanel({
           className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
             opacity: isHovered ? 0.8 : 0,
-            background: `radial-gradient(150px circle at ${coords.x}px ${coords.y}px, rgba(255, 255, 255, 0.08), transparent 80%)`,
+            background: `radial-gradient(150px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 255, 255, 0.08), transparent 80%)`,
             border: "1px solid transparent",
             maskImage: "linear-gradient(black, black) exclude, linear-gradient(black, black)",
             WebkitMaskImage: "linear-gradient(black, black) exclude, linear-gradient(black, black)",
@@ -106,7 +105,7 @@ export function InteractiveButton({
   return (
     <motion.button
       className={cn(
-        "px-4 py-2 text-xs font-semibold rounded-lg font-mono relative overflow-hidden transition-all duration-300 active:scale-95 disabled:opacity-40",
+        "px-4 py-2 text-xs font-semibold rounded-lg font-mono relative overflow-hidden active:scale-95 disabled:opacity-40",
         variant === "primary" && "bg-zinc-100 hover:bg-white text-zinc-950 shadow-[0_4px_12px_rgba(255,255,255,0.1)]",
         variant === "secondary" && "bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700",
         variant === "glow" && "bg-zinc-950 text-zinc-200 border border-zinc-800 hover:border-violet-800/40 hover:text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]",

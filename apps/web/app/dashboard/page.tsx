@@ -12,7 +12,7 @@ import {
   useSpring, useTransform
 } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
-import { SpatialPanel, InteractiveButton, AmbientGlow, NeuralPulse } from "../../components/ui/primitives";
+import { SpatialPanel } from "../../components/ui/primitives";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -50,13 +50,13 @@ const fadeUp = {
   visible: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: Math.min(i, 3) * 0.04, duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    transition: { delay: Math.min(i, 3) * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
   }),
 };
 
 const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 };
 
 const springConfig = { type: "spring" as const, stiffness: 260, damping: 28 };
@@ -79,18 +79,18 @@ function AnimatedBar({ pct, color, delay = 0 }: { pct: number; color: string; de
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   return (
-    <div ref={ref} className="w-full bg-zinc-900/60 rounded-full h-1.5 overflow-hidden border border-zinc-800/30">
+    <div ref={ref} className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
       <motion.div
         className={`h-1.5 rounded-full ${color}`}
         initial={{ width: 0 }}
         animate={inView ? { width: `${pct}%` } : { width: 0 }}
-        transition={{ duration: 0.95, delay, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
       />
     </div>
   );
 }
 
-// ── Section card (identical to Resume Intelligence but visually upgraded) ────
+// ── Section card (identical to Resume Intelligence) ────────────────────────────
 
 function SectionCard({
   title, icon, children, defaultOpen = true, delay = 0,
@@ -110,21 +110,25 @@ function SectionCard({
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
     >
-      <SpatialPanel glow={true} interactive={false} className="border-zinc-900/80 bg-zinc-950/40 backdrop-blur-xl p-0 overflow-hidden shadow-2xl">
+      <SpatialPanel
+        glow={true}
+        interactive={true}
+        className="p-0 overflow-hidden border-zinc-800 bg-zinc-950/40 backdrop-blur-xl"
+      >
         <motion.button
           onClick={() => setOpen(!open)}
-          className="w-full flex items-center justify-between px-6 py-4.5 bg-zinc-950/40 hover:bg-zinc-900/20 transition-colors border-b border-zinc-900/80"
+          className="w-full flex items-center justify-between px-6 py-4 bg-zinc-900/60 hover:bg-zinc-800/40 transition-colors"
           whileTap={{ scale: 0.995 }}
         >
           <div className="flex items-center gap-3">
-            <span className="text-zinc-500">{icon}</span>
-            <span className="text-[11px] font-mono font-bold text-zinc-400 tracking-widest uppercase">{title}</span>
+            <span className="text-zinc-400">{icon}</span>
+            <span className="text-sm font-semibold text-zinc-100 tracking-wide uppercase">{title}</span>
           </div>
           <motion.span
             animate={{ rotate: open ? 0 : -90 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <ChevronUp className="w-4 h-4 text-zinc-600 hover:text-zinc-400 transition-colors" />
+            <ChevronUp className="w-4 h-4 text-zinc-500" />
           </motion.span>
         </motion.button>
         <AnimatePresence initial={false}>
@@ -137,7 +141,7 @@ function SectionCard({
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <div className="bg-zinc-950/10 px-6 py-5.5">{children}</div>
+              <div className="bg-zinc-950/20 px-6 py-5">{children}</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -285,6 +289,10 @@ const FEED_ITEMS = [
   { time: "3d ago", event: "Skill demand shift: Docker + Kubernetes up 18% in JDs", type: "skill" },
 ];
 
+// ── Empty state — replaced by full onboarding flow below ─────────────────────
+// (kept as a named export for backwards compat, but no longer used directly)
+function _EmptyStateLegacy() { return null; }
+
 // ── Onboarding dashboard — shown when no resume exists ────────────────────────
 
 const SETUP_STEPS = [
@@ -337,188 +345,208 @@ const LOCKED_MODULES = [
 
 function OnboardingDashboard({ firstName }: { firstName: string }) {
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 relative overflow-hidden flex items-center justify-center py-20 px-6">
-      {/* Immersive cinematic spatial overlays */}
-      <AmbientGlow size="lg" color="mixed" className="-top-40 left-1/2 -translate-x-1/2 opacity-25" />
-      <AmbientGlow size="md" color="cyan" className="-bottom-20 -right-20 opacity-15" />
-      
-      <div className="max-w-4xl w-full mx-auto space-y-10 relative z-10">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
 
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-2"
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          <div className="flex justify-center mb-1">
-            <NeuralPulse size="md" label="Career Intelligence" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100 font-outfit mt-3">
+          <p className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Career Intelligence</p>
+          <h1 className="text-2xl font-bold text-zinc-100 mt-1">
             Welcome, {firstName}
           </h1>
-          <p className="text-zinc-500 text-sm max-w-lg mx-auto">
-            Initialize your spatial AI cockpit to unlock deep career analytics, role alignment models, and personalized simulation vectors.
+          <p className="text-zinc-500 text-sm mt-1">
+            Complete your setup to unlock your personalized career intelligence profile.
           </p>
         </motion.div>
 
         {/* Setup progress banner */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          className="border border-zinc-800 rounded-xl bg-zinc-900 px-6 py-5"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, delay: 0.05, ease: "easeOut" }}
         >
-          <SpatialPanel glow={true} interactive={false} className="border-violet-500/25 bg-zinc-950/40 backdrop-blur-xl px-7 py-6.5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-              <div className="space-y-1.5 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-                    Setup Vector Required
-                  </span>
-                </div>
-                <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed max-w-xl">
-                  No telemetry, intelligence metrics, or interview models can initialize until a valid resume matrix is ingested by our neural parsing layers.
-                </p>
-              </div>
-              <Link href="/resume" className="shrink-0 w-full sm:w-auto">
-                <InteractiveButton variant="primary" className="w-full sm:w-auto px-5 py-3 flex items-center justify-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Injest Resume File
-                  <ArrowRight className="w-4 h-4 text-zinc-950" />
-                </InteractiveButton>
-              </Link>
-            </div>
-          </SpatialPanel>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+              Intelligence Profile — Setup Required
+            </span>
+          </div>
+          <p className="text-zinc-400 text-sm leading-relaxed max-w-2xl">
+            Your career intelligence dashboard is ready, but needs your resume to generate
+            real analysis. No scores, predictions, or insights are shown until the system
+            has actual data to work from.
+          </p>
+          <div className="mt-4 pt-4 border-t border-zinc-800">
+            <Link
+              href="/resume"
+              className="inline-flex items-center gap-2 bg-zinc-100 text-zinc-900 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-white transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Start with Resume Analysis
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </motion.div>
 
         {/* Setup steps */}
-        <div className="space-y-4">
+        <div>
           <motion.p
-            className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase"
+            className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.15 }}
           >
-            Sequence Checklist
+            Setup Steps
           </motion.p>
-          <div className="grid grid-cols-1 gap-3">
-            {SETUP_STEPS.map((step, i) => {
-              const isActive = i === 0;
-              return (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 + 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <SpatialPanel
-                    glow={isActive}
-                    interactive={isActive}
-                    className={`px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-300 ${
-                      isActive 
-                        ? "border-violet-500/30 bg-violet-500/[0.03] backdrop-blur-md" 
-                        : "border-zinc-900/60 bg-zinc-950/20 opacity-55"
-                    }`}
-                  >
-                    <div className="flex items-start gap-4 flex-1">
-                      {/* Step marker */}
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border mt-0.5 transition-all duration-300 ${
-                        isActive
-                          ? "bg-zinc-100 border-zinc-200 text-zinc-950 shadow-[0_0_10px_rgba(255,255,255,0.15)]"
-                          : "bg-zinc-950 border-zinc-800 text-zinc-600"
-                      }`}>
-                        <span className="text-xs font-mono font-bold">{step.step}</span>
-                      </div>
+          <div className="space-y-3">
+            {SETUP_STEPS.map((step, i) => (
+              <motion.div
+                key={step.step}
+                className="border border-zinc-800 rounded-xl bg-zinc-900 overflow-hidden"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 + 0.1, duration: 0.4, ease: "easeOut" }}
+                whileHover={{ borderColor: "rgb(63 63 70)", y: -1, transition: { duration: 0.2 } }}
+              >
+                <div className="px-5 py-4 flex items-start gap-4">
+                  {/* Step number */}
+                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                    i === 0
+                      ? "bg-zinc-100 border-zinc-200 text-zinc-900"
+                      : "bg-zinc-900 border-zinc-700 text-zinc-500"
+                  }`}>
+                    <span className="text-xs font-bold">{step.step}</span>
+                  </div>
 
-                      {/* Info */}
-                      <div className="space-y-2 flex-1 min-w-0">
-                        <div className="flex items-center gap-2.5">
-                          <span className={isActive ? "text-zinc-300" : "text-zinc-600"}>{step.icon}</span>
-                          <h3 className={`text-sm font-semibold tracking-wide font-outfit ${isActive ? "text-zinc-100" : "text-zinc-500"}`}>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={i === 0 ? "text-zinc-400" : "text-zinc-600"}>{step.icon}</span>
+                          <h3 className={`text-sm font-semibold ${i === 0 ? "text-zinc-100" : "text-zinc-500"}`}>
                             {step.title}
                           </h3>
-                          {isActive && (
-                            <span className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded border bg-violet-950/50 text-violet-400 border-violet-800/40">
-                              Active
+                          {i === 0 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded border font-mono bg-amber-950/40 text-amber-400 border-amber-900">
+                              Start here
                             </span>
                           )}
                         </div>
-                        <p className={`text-xs leading-relaxed max-w-xl ${isActive ? "text-zinc-400" : "text-zinc-600"}`}>
+                        <p className={`text-xs leading-relaxed ${i === 0 ? "text-zinc-400" : "text-zinc-600"}`}>
                           {step.description}
                         </p>
                         {/* Unlocks */}
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                           {step.unlocks.map(u => (
-                            <span key={u} className={`text-[9px] font-mono px-1.5 py-0.5 rounded border transition-colors duration-300 ${
-                              isActive
-                                ? "bg-zinc-900/60 text-zinc-400 border-zinc-800"
-                                : "bg-zinc-950/10 text-zinc-700 border-zinc-900/40"
+                            <span key={u} className={`text-xs font-mono px-1.5 py-0.5 rounded border ${
+                              i === 0
+                                ? "bg-zinc-800 text-zinc-400 border-zinc-700"
+                                : "bg-zinc-900 text-zinc-700 border-zinc-800"
                             }`}>
                               {u}
                             </span>
                           ))}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Button / Lock state */}
-                    {isActive ? (
-                      <Link href={step.href} className="w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
-                        <InteractiveButton variant="glow" className="w-full sm:w-auto">
+                      {/* CTA */}
+                      {i === 0 ? (
+                        <Link
+                          href={step.href}
+                          className="inline-flex items-center gap-1.5 text-xs bg-zinc-100 text-zinc-900 font-semibold px-4 py-2 rounded-lg hover:bg-white transition-colors shrink-0"
+                        >
                           {step.cta}
                           <ArrowRight className="w-3.5 h-3.5" />
-                        </InteractiveButton>
-                      </Link>
-                    ) : (
-                      <div className="w-full sm:w-auto shrink-0 mt-3 sm:mt-0 px-4 py-2 border border-zinc-900 bg-zinc-950/40 text-zinc-700 rounded-lg flex items-center justify-center gap-2 text-xs font-mono select-none cursor-not-allowed">
-                        <Lock className="w-3 h-3 text-zinc-800" />
-                        Locked
-                      </div>
-                    )}
-                  </SpatialPanel>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Locked Modules Grid */}
-        <div className="space-y-4">
-          <motion.p
-            className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            Holographic Widgets Offline
-          </motion.p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {LOCKED_MODULES.map((mod, i) => (
-              <motion.div
-                key={mod.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 + 0.55, duration: 0.4 }}
-              >
-                <SpatialPanel className="border-zinc-900/60 bg-zinc-950/20 p-4 relative overflow-hidden flex flex-col justify-between h-[108px] group hover:border-zinc-800/80 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-700 transition-colors duration-300 group-hover:text-zinc-600">{mod.icon}</span>
-                    <Lock className="w-3 h-3 text-zinc-800" />
+                        </Link>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-zinc-700 border border-zinc-800 px-4 py-2 rounded-lg shrink-0 cursor-not-allowed">
+                          <Lock className="w-3 h-3" />
+                          Locked
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-zinc-500 font-outfit">{mod.label}</p>
-                    <p className="text-[9px] font-mono text-zinc-700 mt-0.5">{mod.reason}</p>
-                  </div>
-                  {/* Offline progress bar */}
-                  <div className="w-full bg-zinc-950/80 border border-zinc-900/40 rounded-full h-1 overflow-hidden mt-2">
-                    <div className="h-1 w-0 bg-zinc-800 rounded-full" />
-                  </div>
-                </SpatialPanel>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
+
+        {/* Locked intelligence modules */}
+        <div>
+          <motion.p
+            className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            Intelligence Modules — Pending Activation
+          </motion.p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {LOCKED_MODULES.map((mod, i) => (
+              <motion.div
+                key={mod.label}
+                className="border border-zinc-800 rounded-xl bg-zinc-900 px-4 py-4"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 + 0.45, duration: 0.35 }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-zinc-700">{mod.icon}</span>
+                  <Lock className="w-3 h-3 text-zinc-700" />
+                </div>
+                <p className="text-xs font-semibold text-zinc-600">{mod.label}</p>
+                <p className="text-xs text-zinc-700 mt-0.5">{mod.reason}</p>
+                {/* Placeholder bar */}
+                <div className="mt-3 w-full bg-zinc-800 rounded-full h-1 overflow-hidden">
+                  <div className="h-1 w-0 bg-zinc-700 rounded-full" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* What you'll unlock */}
+        <motion.div
+          className="border border-zinc-800 rounded-xl bg-zinc-900 px-6 py-5"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">
+            What You'll Unlock After Resume Analysis
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { title: "ATS Compatibility Score", desc: "6-dimension breakdown of how your resume performs in automated screening" },
+              { title: "Recruiter Simulation", desc: "Simulated first-pass recruiter scan with shortlist probability" },
+              { title: "Role Fit Analysis", desc: "Match confidence across 5 engineering tracks based on your skill profile" },
+              { title: "Highest ROI Action", desc: "Single most impactful improvement to increase your hiring probability" },
+              { title: "Interview Readiness", desc: "Technical strengths, communication concerns, and missing signals" },
+              { title: "Market Intelligence", desc: "Live job listings matched to your skills with AI fit scoring" },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                className="flex items-start gap-3"
+                initial={{ opacity: 0, x: -4 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 + 0.65 }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 shrink-0 mt-1.5" />
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400">{item.title}</p>
+                  <p className="text-xs text-zinc-600 mt-0.5 leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
       </div>
     </div>
@@ -534,7 +562,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch("http://localhost:4000/api/v1/resumes/latest", {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    fetch(`${apiBase}/api/v1/resumes/latest`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -549,12 +578,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#030303] flex items-center justify-center relative overflow-hidden">
-        <AmbientGlow size="md" color="mixed" className="opacity-20" />
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <motion.div
-          className="w-10 h-10 border-2 border-zinc-800 border-t-violet-500 rounded-full"
+          className="w-8 h-8 border-2 border-zinc-700 border-t-zinc-300 rounded-full"
           animate={{ rotate: 360 }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         />
       </div>
     );
@@ -588,152 +616,165 @@ export default function DashboardPage() {
 
   const firstName = user?.name?.split(" ")[0] || resumeData.name?.split(" ")[0] || "there";
   const atsScore = ats?.total_score ?? 0;
-  const atsColor = atsScore >= 75 ? "text-emerald-400" : atsScore >= 55 ? "text-amber-400" : "text-rose-400";
+  const atsColor = atsScore >= 75 ? "text-emerald-400" : atsScore >= 55 ? "text-amber-400" : "text-red-400";
 
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 relative overflow-hidden pb-20">
-      {/* High-end spatial gradients */}
-      <AmbientGlow size="lg" color="mixed" className="-top-[240px] left-1/4 opacity-15" />
-      <AmbientGlow size="lg" color="cyan" className="-bottom-[200px] -right-[100px] opacity-10" />
-      
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-8 relative z-10">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
 
-        {/* Page header */}
+        {/* ── Page header ── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="flex items-start justify-between"
         >
-          <div className="space-y-1">
-            <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">System Intelligence Dashboard</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100 mt-1 font-outfit">
+          <div>
+            <p className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Career Intelligence</p>
+            <h1 className="text-2xl font-bold text-zinc-100 mt-1">
               Good {getTimeOfDay()}, {firstName}
             </h1>
           </div>
           <motion.div
-            className="flex items-center self-start sm:self-center"
+            className="flex items-center gap-2 text-xs text-zinc-600 border border-zinc-800 rounded-lg px-3 py-2 bg-zinc-900"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
           >
-            <div className="border border-zinc-900 bg-zinc-950/60 backdrop-blur-md rounded-xl px-4 py-2 flex items-center gap-2">
-              <NeuralPulse size="sm" label="Telemetry Synchronized" />
-            </div>
+            <Activity className="w-3.5 h-3.5" />
+            Intelligence updated from latest resume
           </motion.div>
         </motion.div>
 
-        {/* Career Intelligence Hero Card */}
+        {/* ── Career Intelligence Hero ── */}
         <motion.div
+          className="border border-zinc-800 rounded-xl bg-zinc-900 px-6 py-5"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ borderColor: "rgb(63 63 70)" }}
         >
-          <SpatialPanel glow={true} interactive={false} className="border-zinc-900/80 bg-zinc-950/40 backdrop-blur-xl relative overflow-hidden py-6 px-7">
-            <AmbientGlow size="md" color="violet" className="-top-20 -right-20 opacity-15" />
-            <div className="flex flex-col md:flex-row items-start justify-between gap-8">
-              <div className="space-y-3.5 flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-[10px] font-mono font-bold tracking-widest px-2.5 py-1 rounded-md border bg-zinc-900/80 text-zinc-400 border-zinc-800">
-                    Career Signal Matrix
-                  </span>
-                  <span className="text-[11px] font-mono text-zinc-500">
-                    Extracted from workspace telemetry
-                  </span>
-                </div>
-                <p className="text-zinc-300 text-sm leading-relaxed max-w-2xl font-outfit">
-                  {positioning}
-                </p>
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <motion.span
+                  className="text-xs font-semibold px-2.5 py-1 rounded border font-mono bg-zinc-800 text-zinc-400 border-zinc-700"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, ...springConfig }}
+                >
+                  Career Positioning
+                </motion.span>
+                <motion.span
+                  className="text-xs text-zinc-500"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  Derived from resume analysis
+                </motion.span>
               </div>
-              <motion.div
-                className="flex flex-wrap gap-3.5 shrink-0 w-full md:w-auto justify-start md:justify-end"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15, duration: 0.5 }}
+              <motion.p
+                className="text-zinc-200 text-sm leading-relaxed max-w-2xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25, duration: 0.5 }}
               >
-                <HeroPill value={atsScore} label="ATS index" color={atsColor} />
-                <HeroPill value={shortlistPct} suffix="%" label="Shortlist Prob" color={shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"} />
-                <HeroPill value={skills.length} label="Telemetry skills" />
-              </motion.div>
+                {positioning}
+              </motion.p>
             </div>
-          </SpatialPanel>
+            <motion.div
+              className="flex gap-3 shrink-0"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <HeroPill value={atsScore} label="ATS Score" color={atsColor} />
+              <HeroPill value={shortlistPct} suffix="%" label="Shortlist Prob." color={shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-red-400"} />
+              <HeroPill value={skills.length} label="Skills" />
+            </motion.div>
+          </div>
         </motion.div>
 
-        {/* Top ROI Action */}
+        {/* ── Top ROI Action ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          <SpatialPanel glow={true} className="border-amber-500/20 bg-amber-500/[0.03] backdrop-blur-xl relative overflow-hidden py-6 px-7">
+          <SpatialPanel
+            glow={true}
+            interactive={true}
+            className="border-zinc-800 bg-zinc-950/40 backdrop-blur-xl px-6 py-5"
+          >
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">System Recommendation Vector</span>
+              <Sparkles className="w-4 h-4 text-zinc-400" />
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Today's Highest ROI Action</span>
             </div>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex-1 space-y-2">
-                <p className="text-zinc-100 font-semibold text-sm leading-relaxed font-outfit">{bottleneck.action}</p>
-                <p className="text-xs text-zinc-500 leading-relaxed max-w-2xl">{bottleneck.why}</p>
+            <div className="flex flex-col md:flex-row md:items-start gap-4">
+              <div className="flex-1">
+                <p className="text-zinc-100 font-medium text-sm leading-relaxed mb-2">{bottleneck.action}</p>
+                <p className="text-xs text-zinc-500 leading-relaxed">{bottleneck.why}</p>
               </div>
-              <div className="shrink-0 border border-zinc-900 rounded-xl px-5 py-3.5 bg-zinc-950/80 min-w-[200px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)] text-center sm:text-left">
-                <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase mb-1">Expected return</p>
-                <p className="text-sm font-semibold text-emerald-400 font-outfit">{bottleneck.impact}</p>
+              <div className="shrink-0 border border-zinc-800 rounded-lg px-4 py-3 bg-zinc-950 min-w-[200px]">
+                <p className="text-xs text-zinc-500 mb-1">Estimated impact</p>
+                <p className="text-xs font-semibold text-emerald-400">{bottleneck.impact}</p>
               </div>
             </div>
-            <div className="mt-5 pt-4 border-t border-zinc-900/60 flex items-center justify-between">
+            <div className="mt-4 pt-4 border-t border-zinc-800">
               <Link
                 href="/resume"
-                className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors group"
+                className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
               >
-                Injest full intelligence pipeline
-                <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all" />
+                View full resume analysis <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </SpatialPanel>
         </motion.div>
 
-        {/* Two-column Widgets: Recruiter Snapshot + Career Trajectory */}
+        {/* ── Two-column: Recruiter Snapshot + Career Trajectory ── */}
+        {/* items-start: each card sizes to its own content, not the tallest sibling */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
           {/* Recruiter Impression Snapshot */}
-          <SectionCard title="Recruiter Signal Simulation" icon={<Users className="w-4.5 h-4.5" />} delay={1}>
-            <p className="text-xs text-zinc-500 mb-4 leading-relaxed font-outfit">
-              Simulated recruiter triage sweep based on keyword frequency and output telemetry.
+          <SectionCard title="Recruiter Snapshot" icon={<Users className="w-4 h-4" />} delay={1}>
+            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
+              Simulated 6-second recruiter first impression based on resume signal density.
             </p>
-            <div className="space-y-3 mb-5">
+            <div className="space-y-2 mb-4">
               {recruiterPositive.slice(0, 3).map((s, i) => (
                 <motion.div
                   key={i}
-                  className="flex items-start gap-2.5 text-xs text-zinc-300"
+                  className="flex items-start gap-2 text-sm text-zinc-300"
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 + 0.1 }}
+                  transition={{ delay: i * 0.07 + 0.1 }}
                 >
-                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.05 + 0.15, ...springConfig }} className="shrink-0 mt-0.5">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.07 + 0.15, ...springConfig }}>
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   </motion.span>
-                  <span className="font-outfit leading-relaxed">{s}</span>
+                  {s}
                 </motion.div>
               ))}
               {recruiterNegative.slice(0, 2).map((s, i) => (
                 <motion.div
                   key={i}
-                  className="flex items-start gap-2.5 text-xs text-zinc-300"
+                  className="flex items-start gap-2 text-sm text-zinc-300"
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: (i + recruiterPositive.length) * 0.05 + 0.1 }}
+                  transition={{ delay: (i + recruiterPositive.length) * 0.07 + 0.1 }}
                 >
-                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: (i + 3) * 0.05 + 0.15, ...springConfig }} className="shrink-0 mt-0.5">
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: (i + 3) * 0.07 + 0.15, ...springConfig }}>
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                   </motion.span>
-                  <span className="font-outfit leading-relaxed">{s}</span>
+                  {s}
                 </motion.div>
               ))}
             </div>
-            <div className="border-t border-zinc-900/60 pt-4 flex items-center justify-between">
-              <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Calculated Pass Probability</span>
+            <div className="border-t border-zinc-800 pt-3 flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Shortlist probability</span>
               <motion.span
-                className={`text-xl font-bold font-mono ${shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-rose-400"}`}
+                className={`text-lg font-black font-mono ${shortlistPct >= 65 ? "text-emerald-400" : shortlistPct >= 45 ? "text-amber-400" : "text-red-400"}`}
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, ...springConfig }}
@@ -744,26 +785,26 @@ export default function DashboardPage() {
           </SectionCard>
 
           {/* Career Trajectory */}
-          <SectionCard title="Vector Alignment Score" icon={<TrendingUp className="w-4.5 h-4.5" />} delay={2}>
-            <p className="text-xs text-zinc-500 mb-4 font-outfit">
-              Weighted role alignment derived from telemetry category concentration models.
+          <SectionCard title="Career Trajectory" icon={<TrendingUp className="w-4 h-4" />} delay={2}>
+            <p className="text-xs text-zinc-500 mb-4">
+              Role alignment derived from skill category distribution. Reflects current resume signal strength.
             </p>
-            <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
+            <motion.div className="space-y-3" variants={staggerContainer} initial="hidden" animate="visible">
               {roleFit.slice(0, 4).map((r, i) => (
-                <motion.div key={r.role} variants={fadeUp} custom={i} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                <motion.div key={r.role} variants={fadeUp} custom={i}>
+                  <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       {i === 0 && (
                         <motion.span
-                          className="text-[9px] font-mono tracking-widest bg-zinc-900 text-zinc-400 border border-zinc-800 px-1.5 py-0.5 rounded-md"
+                          className="text-xs bg-zinc-800 text-zinc-400 border border-zinc-700 px-1.5 py-0.5 rounded font-mono"
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.2, ...springConfig }}
                         >
-                          Prime
+                          Best
                         </motion.span>
                       )}
-                      <span className="text-xs text-zinc-300 font-outfit">{r.role}</span>
+                      <span className="text-xs text-zinc-300">{r.role}</span>
                     </div>
                     <span className={`text-xs font-mono font-semibold ${r.pct >= 70 ? "text-emerald-400" : r.pct >= 50 ? "text-amber-400" : "text-zinc-500"}`}>
                       <AnimatedNumber value={r.pct} suffix="%" />
@@ -771,96 +812,95 @@ export default function DashboardPage() {
                   </div>
                   <AnimatedBar
                     pct={r.pct}
-                    color={r.pct >= 70 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : r.pct >= 50 ? "bg-amber-500" : "bg-zinc-700"}
+                    color={r.pct >= 70 ? "bg-emerald-500" : r.pct >= 50 ? "bg-amber-500" : "bg-zinc-600"}
                     delay={Math.min(i, 3) * 0.04 + 0.05}
                   />
                 </motion.div>
               ))}
             </motion.div>
-            <div className="mt-5.5 pt-4 border-t border-zinc-900/60">
-              <Link href="/roadmap" className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors group">
-                Trace learning trajectory
-                <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all" />
+            <div className="mt-4 pt-3 border-t border-zinc-800">
+              <Link href="/roadmap" className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+                View learning roadmap <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </SectionCard>
         </div>
 
-        {/* Interview Readiness */}
-        <SectionCard title="Simulation Telemetry Analysis" icon={<Target className="w-4.5 h-4.5" />} delay={3}>
-          <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
-            System readiness outputs generated from resume structure quality, action-oriented syntax patterns, and verifiable work history evidence.
+        {/* ── Interview Readiness ── */}
+        <SectionCard title="Interview Readiness" icon={<Target className="w-4 h-4" />} delay={3}>
+          <p className="text-xs text-zinc-500 mb-5 leading-relaxed">
+            Readiness signals derived from resume language quality, impact evidence, and portfolio depth.
+            These directly predict interview performance patterns.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Optimal Signals</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Technical Strengths</p>
               <ul className="space-y-2">
                 {interview.strengths.length > 0 ? interview.strengths.map((s, i) => (
                   <motion.li
                     key={i}
-                    className="flex items-start gap-2 text-xs text-zinc-300 leading-relaxed font-outfit"
+                    className="flex items-start gap-2 text-xs text-zinc-300"
                     initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    transition={{ delay: i * 0.06 }}
                   >
-                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{s}</span>
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    {s}
                   </motion.li>
-                )) : <li className="text-xs text-zinc-600 font-outfit">Injest resume telemetry to check optimal indices</li>}
+                )) : <li className="text-xs text-zinc-600">Upload resume to detect strengths</li>}
               </ul>
             </div>
-            <div className="space-y-3">
-              <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Warning Vectors</p>
+            <div>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Communication Concerns</p>
               <ul className="space-y-2">
                 {interview.concerns.length > 0 ? interview.concerns.map((s, i) => (
                   <motion.li
                     key={i}
-                    className="flex items-start gap-2 text-xs text-zinc-300 leading-relaxed font-outfit"
+                    className="flex items-start gap-2 text-xs text-zinc-300"
                     initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 + 0.05 }}
+                    transition={{ delay: i * 0.06 + 0.1 }}
                   >
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <span>{s}</span>
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    {s}
                   </motion.li>
-                )) : <li className="text-xs text-zinc-600 font-outfit">No high-risk concerns registered</li>}
+                )) : <li className="text-xs text-zinc-500">No major concerns detected</li>}
               </ul>
             </div>
-            <div className="space-y-3">
-              <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Missing Nodes</p>
+            <div>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Missing Signals</p>
               <ul className="space-y-2">
                 {interview.missing.length > 0 ? interview.missing.map((s, i) => (
                   <motion.li
                     key={i}
-                    className="flex items-start gap-2 text-xs text-zinc-300 leading-relaxed font-outfit"
+                    className="flex items-start gap-2 text-xs text-zinc-300"
                     initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 + 0.1 }}
+                    transition={{ delay: i * 0.06 + 0.2 }}
                   >
-                    <span className="w-4 h-4 shrink-0 mt-0.5 flex items-center justify-center">
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                    <span className="w-3.5 h-3.5 shrink-0 mt-0.5 flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
                     </span>
-                    <span>{s}</span>
+                    {s}
                   </motion.li>
-                )) : <li className="text-xs text-zinc-600 font-outfit">All critical nodes validated</li>}
+                )) : <li className="text-xs text-zinc-500">No missing signals detected</li>}
               </ul>
             </div>
           </div>
-          <div className="mt-5.5 pt-4 border-t border-zinc-900/60">
-            <Link href="/interview" className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors group">
-              Initialize mock simulation
-              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all" />
+          <div className="mt-5 pt-4 border-t border-zinc-800">
+            <Link href="/interview" className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+              Start mock interview <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </SectionCard>
 
-        {/* Market Intelligence */}
-        <SectionCard title="Live Market Feeds" icon={<BarChart2 className="w-4.5 h-4.5" />} delay={4}>
-          <p className="text-xs text-zinc-500 mb-4 font-outfit">
-            Aggregated workspace signals tracking hiring trends and keyword listings across standard indexes.
+        {/* ── Market Intelligence ── */}
+        <SectionCard title="Market Intelligence" icon={<BarChart2 className="w-4 h-4" />} delay={4}>
+          <p className="text-xs text-zinc-500 mb-5">
+            Live hiring signal trends across engineering domains. Updated weekly from job market analysis.
           </p>
           <motion.div
-            className="space-y-1.5"
+            className="space-y-3"
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
@@ -870,34 +910,34 @@ export default function DashboardPage() {
                 key={i}
                 variants={fadeUp}
                 custom={i}
-                className="flex items-center justify-between py-2 px-3 border border-zinc-900/40 bg-zinc-950/20 hover:bg-zinc-900/10 hover:border-zinc-800/80 rounded-xl transition-all duration-300"
+                className="flex items-center justify-between py-2.5 border-b border-zinc-800 last:border-0"
+                whileHover={{ x: 2, transition: { duration: 0.15 } }}
               >
                 <div className="flex items-center gap-3">
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    item.trend === "up" ? "bg-emerald-400 animate-pulse" :
-                    item.trend === "down" ? "bg-rose-500" : "bg-zinc-500"
+                    item.trend === "up" ? "bg-emerald-500" :
+                    item.trend === "down" ? "bg-red-500" : "bg-zinc-500"
                   }`} />
-                  <span className="text-xs sm:text-sm text-zinc-300 font-outfit">{item.signal}</span>
+                  <span className="text-sm text-zinc-300">{item.signal}</span>
                 </div>
-                <span className="text-[10px] font-mono text-zinc-500 shrink-0 ml-4">{item.domain}</span>
+                <span className="text-xs text-zinc-600 shrink-0 ml-4 font-mono">{item.domain}</span>
               </motion.div>
             ))}
           </motion.div>
-          <div className="mt-5.5 pt-4 border-t border-zinc-900/60">
-            <Link href="/market" className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors group">
-              Trace full market indexes
-              <ArrowRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all" />
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <Link href="/market" className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+              Full market analysis <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </SectionCard>
 
-        {/* Live AI Intelligence Feed */}
-        <SectionCard title="Telemetry Stream Logs" icon={<Activity className="w-4.5 h-4.5" />} delay={5}>
-          <p className="text-xs text-zinc-500 mb-5 leading-relaxed font-outfit">
-            Holographic real-time telemetry recording and market updates relative to your focus.
+        {/* ── Live AI Intelligence Feed ── */}
+        <SectionCard title="Intelligence Feed" icon={<Activity className="w-4 h-4" />} delay={5}>
+          <p className="text-xs text-zinc-500 mb-5">
+            Real-time career intelligence updates — market shifts, benchmark changes, and role demand signals.
           </p>
           <motion.div
-            className="space-y-0.5"
+            className="space-y-0"
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
@@ -907,29 +947,30 @@ export default function DashboardPage() {
                 key={i}
                 variants={fadeUp}
                 custom={i}
-                className="flex items-start gap-4 py-3 border-b border-zinc-900/50 last:border-0 hover:bg-zinc-900/5 px-2 rounded-xl transition-colors duration-300"
+                className="flex items-start gap-4 py-3.5 border-b border-zinc-800 last:border-0"
+                whileHover={{ x: 2, transition: { duration: 0.15 } }}
               >
-                <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
+                <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
                   <span className={`w-2 h-2 rounded-full ${
                     item.type === "market" ? "bg-blue-500" :
                     item.type === "match" ? "bg-emerald-500" :
                     item.type === "benchmark" ? "bg-amber-500" :
                     item.type === "hiring" ? "bg-purple-500" : "bg-zinc-500"
                   }`} />
-                  {i < FEED_ITEMS.length - 1 && <div className="w-px flex-1 bg-zinc-900 min-h-[22px]" />}
+                  {i < FEED_ITEMS.length - 1 && <div className="w-px flex-1 bg-zinc-800 min-h-[20px]" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-outfit">{item.event}</p>
-                  <p className="text-[10px] font-mono text-zinc-500 mt-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-zinc-600" />
+                  <p className="text-sm text-zinc-300 leading-relaxed">{item.event}</p>
+                  <p className="text-xs text-zinc-600 mt-1 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
                     {item.time}
                   </p>
                 </div>
-                <span className={`text-[9px] font-mono tracking-widest px-2.5 py-0.5 rounded-md border shrink-0 ${
-                  item.type === "market" ? "bg-blue-950/40 text-blue-400 border-blue-900/50" :
-                  item.type === "match" ? "bg-emerald-950/40 text-emerald-400 border-emerald-900/50" :
-                  item.type === "benchmark" ? "bg-amber-950/40 text-amber-400 border-amber-900/50" :
-                  item.type === "hiring" ? "bg-purple-950/40 text-purple-400 border-purple-900/50" :
+                <span className={`text-xs px-2 py-0.5 rounded border font-mono shrink-0 ${
+                  item.type === "market" ? "bg-blue-950/40 text-blue-400 border-blue-900" :
+                  item.type === "match" ? "bg-emerald-950/40 text-emerald-400 border-emerald-900" :
+                  item.type === "benchmark" ? "bg-amber-950/40 text-amber-400 border-amber-900" :
+                  item.type === "hiring" ? "bg-purple-950/40 text-purple-400 border-purple-900" :
                   "bg-zinc-900 text-zinc-500 border-zinc-800"
                 }`}>
                   {item.type}
@@ -939,7 +980,7 @@ export default function DashboardPage() {
           </motion.div>
         </SectionCard>
 
-        {/* Quick navigation */}
+        {/* ── Quick navigation ── */}
         <motion.div
           variants={fadeUp}
           custom={6}
@@ -948,23 +989,22 @@ export default function DashboardPage() {
           className="grid grid-cols-2 md:grid-cols-4 gap-3"
         >
           {[
-            { href: "/resume", icon: <FileText className="w-4 h-4" />, label: "Resume Signals", desc: "Analysis matrix" },
-            { href: "/market", icon: <BarChart2 className="w-4 h-4" />, label: "Market Indexes", desc: "Hiring trends" },
-            { href: "/roadmap", icon: <TrendingUp className="w-4 h-4" />, label: "Learning Vectors", desc: "Gaps & paths" },
-            { href: "/interview", icon: <Cpu className="w-4 h-4" />, label: "Mock Simulation", desc: "Interactive arena" },
+            { href: "/resume", icon: <FileText className="w-4 h-4" />, label: "Resume Intelligence", desc: "Full analysis" },
+            { href: "/market", icon: <BarChart2 className="w-4 h-4" />, label: "Market Analysis", desc: "Job demand" },
+            { href: "/roadmap", icon: <TrendingUp className="w-4 h-4" />, label: "Learning Roadmap", desc: "Skill gaps" },
+            { href: "/interview", icon: <Cpu className="w-4 h-4" />, label: "Mock Interview", desc: "Practice" },
           ].map((item, i) => (
-            <motion.div key={item.href} whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 450, damping: 25 }}>
-              <Link href={item.href} className="block h-full">
-                <SpatialPanel glow={true} interactive={true} className="h-full bg-zinc-950/30 border-zinc-900 hover:border-violet-500/20 p-4 transition-all flex flex-col justify-between">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors">{item.icon}</span>
-                    <ExternalLink className="w-3 h-3 text-zinc-700 hover:text-zinc-500 transition-colors" />
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-xs font-semibold text-zinc-300 font-outfit">{item.label}</p>
-                    <p className="text-[10px] font-mono text-zinc-500 mt-0.5">{item.desc}</p>
-                  </div>
-                </SpatialPanel>
+            <motion.div key={item.href} whileHover={{ y: -2, borderColor: "rgb(63 63 70)" }} transition={{ duration: 0.2 }}>
+              <Link
+                href={item.href}
+                className="flex flex-col gap-2 border border-zinc-800 rounded-xl p-4 bg-zinc-900 hover:bg-zinc-800/60 transition-colors group"
+              >
+                <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors">{item.icon}</span>
+                <div>
+                  <p className="text-xs font-semibold text-zinc-300 group-hover:text-zinc-100 transition-colors">{item.label}</p>
+                  <p className="text-xs text-zinc-600 mt-0.5">{item.desc}</p>
+                </div>
+                <ExternalLink className="w-3 h-3 text-zinc-700 group-hover:text-zinc-500 transition-colors self-end" />
               </Link>
             </motion.div>
           ))}
@@ -975,26 +1015,24 @@ export default function DashboardPage() {
   );
 }
 
-// ── Hero pill (circular / high-tech visual index) ─────────────────────────────
+// ── Hero pill ──────────────────────────────────────────────────────────────────
 
 function HeroPill({ value, label, color = "text-zinc-100", suffix = "" }: {
   value: number; label: string; color?: string; suffix?: string;
 }) {
   return (
-    <motion.div
-      className="flex flex-col items-center justify-center border border-zinc-900/80 rounded-xl px-5 py-3.5 bg-zinc-950/80 relative overflow-hidden min-w-[90px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.01)]"
-      whileHover={{
-        y: -2,
-        borderColor: "rgba(255,255,255,0.1)",
-        boxShadow: "0 10px 20px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.05)",
-      }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+    <SpatialPanel
+      glow={true}
+      interactive={true}
+      className="border border-zinc-800 rounded-xl p-0 bg-zinc-950/40 backdrop-blur-2xl min-w-[120px]"
     >
-      <span className={`text-2xl font-bold font-mono tracking-tight ${color} relative z-10`}>
-        <AnimatedNumber value={value} suffix={suffix} />
-      </span>
-      <span className="text-[9px] font-mono tracking-widest text-zinc-500 mt-1.5 uppercase text-center whitespace-nowrap relative z-10">{label}</span>
-    </motion.div>
+      <div className="flex flex-col items-center justify-center px-5 py-4.5">
+        <span className={`text-xl font-bold font-mono tracking-tight ${color}`}>
+          <AnimatedNumber value={value} suffix={suffix} />
+        </span>
+        <span className="text-[10px] font-mono tracking-widest text-zinc-500 mt-2 uppercase text-center whitespace-nowrap font-bold">{label}</span>
+      </div>
+    </SpatialPanel>
   );
 }
 

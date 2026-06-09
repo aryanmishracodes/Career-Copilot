@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.claude_client import claude
+from services.gemini_client import gemini_client
 from prompts.interview import INTERVIEW_SYSTEM_PROMPT
 import json
 
@@ -24,14 +24,13 @@ async def process_answer(req: InterviewAnswerRequest):
         messages = req.history.copy()
         messages.append({"role": "user", "content": req.answer})
         
-        response = await claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=2048,
-            system=prompt,
-            messages=messages
+        raw = await gemini_client.create_chat_completion(
+            system_instruction=prompt,
+            messages=messages,
+            max_tokens=2048
         )
 
-        raw = response.content[0].text.strip()
+        raw = raw.strip()
         if raw.startswith("```json"):
             raw = raw[7:]
         if raw.endswith("```"):
@@ -40,3 +39,4 @@ async def process_answer(req: InterviewAnswerRequest):
         return json.loads(raw.strip())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

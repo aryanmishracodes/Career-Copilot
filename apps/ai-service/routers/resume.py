@@ -32,7 +32,8 @@ async def parse_resume(req: ParseRequest):
             print(f"[RESUME] Extracted {len(raw_text)} chars (cannot display)")
 
         # Run the full resume analysis pipeline (free, no API needed!)
-        analysis = analyze_resume(raw_text)
+        analysis = await analyze_resume(raw_text)
+
 
         # Embed and store (mock for now)
         embedding_id = await embed_and_store(raw_text, req.resume_id, req.user_id)

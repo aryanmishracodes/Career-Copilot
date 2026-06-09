@@ -587,6 +587,8 @@ function SectionCard({ title, icon, children, defaultOpen = true, delay = 0 }: {
 
 type FilterTab = "all" | "strong" | "roi" | "stretch" | "remote";
 
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
+
 export default function MarketPage() {
   const { token } = useAuth();
   const [rawJobs, setRawJobs] = useState<RawJob[]>([]);
@@ -615,7 +617,7 @@ export default function MarketPage() {
     let skills = ["React", "JavaScript", "Node.js"];
 
     try {
-      const r = await fetch("http://localhost:4000/api/v1/resumes/latest", {
+      const r = await fetch(`${API}/resumes/latest`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (r.ok) {
@@ -637,7 +639,7 @@ export default function MarketPage() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 40000);
 
-      const r = await fetch("http://localhost:4000/api/v1/market/jobs", {
+      const r = await fetch(`${API}/market/jobs`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ skills }),
@@ -676,11 +678,12 @@ export default function MarketPage() {
     setApiLoading(true);
     setVisualLoading(true);
     try {
-      const r = await fetch("http://localhost:4000/api/v1/market/search", {
+      const r = await fetch(`${API}/market/search`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery }),
       });
+
       if (r.ok) {
         const d = await r.json();
         const jobs: RawJob[] = d.jobs || [];

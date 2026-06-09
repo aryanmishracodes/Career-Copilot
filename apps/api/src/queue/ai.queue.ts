@@ -76,10 +76,12 @@ const db = (() => {
   return getDb(process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/career_copilot');
 })();
 
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+
 async function processResumeDirect(data: { resumeId: string; userId: string; fileBuffer: string; mimeType: string }) {
   const { resumeId, fileBuffer, mimeType } = data;
   try {
-    const response = await fetch('http://localhost:8000/resume/parse', {
+    const response = await fetch(`${AI_SERVICE_URL}/resume/parse`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -88,12 +90,11 @@ async function processResumeDirect(data: { resumeId: string; userId: string; fil
         file_b64: fileBuffer,
         mime_type: mimeType,
       }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(120000), // 120s timeout for complex AI analysis
     });
 
     if (!response.ok) {
-      console.error('[QUEUE] Direct parse failed:', response.status);
-      return;
+      throw new Error(`Direct parse failed with status ${response.status}`);
     }
 
     const result = await response.json();
@@ -105,6 +106,7 @@ async function processResumeDirect(data: { resumeId: string; userId: string; fil
     );
   } catch (error) {
     console.error('[QUEUE] Direct processing error:', (error as Error).message);
+    throw error;
   }
 }
 

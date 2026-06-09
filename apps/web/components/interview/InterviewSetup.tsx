@@ -114,7 +114,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                   <SpatialPanel
                     glow={true}
                     interactive={true}
-                    className={`h-full flex flex-col justify-between gap-4 border transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between gap-4 border ${
                       isSelected
                         ? "border-zinc-500 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
                         : "border-zinc-900/80 bg-zinc-950/20 hover:border-zinc-800"
@@ -134,7 +134,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                         <div className="flex items-center gap-1.5 shrink-0">
                           {isSuggested && (
                             <motion.span
-                              className="text-[9px] font-mono tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-950/50 text-amber-400 border border-amber-900/35 uppercase animate-pulse"
+                              className="text-[9px] font-mono tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-950/50 text-amber-400 border border-amber-900/35 uppercase"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.4, ...springConfig }}
@@ -143,7 +143,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                             </motion.span>
                           )}
                           <span className={`text-[9px] font-mono tracking-widest uppercase ${
-                            type.difficulty === "Senior" ? "text-rose-400 animate-pulse" :
+                            type.difficulty === "Senior" ? "text-rose-400" :
                             type.difficulty === "Mid" ? "text-amber-400" : "text-emerald-400"
                           }`}>
                             {type.difficulty}
@@ -185,7 +185,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between p-4 border ${
                       isActive
                         ? "border-zinc-600 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
                         : "border-zinc-900 bg-zinc-950/20 hover:border-zinc-800"
@@ -230,7 +230,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between p-4 border ${
                       isActive
                         ? "border-zinc-600 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
                         : "border-zinc-900 bg-zinc-950/20 hover:border-zinc-800"

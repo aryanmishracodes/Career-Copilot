@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle, Cpu } from "lucide-react";
 import { SpatialPanel, InteractiveButton, AmbientGlow, NeuralPulse } from "@/components/ui/primitives";
 
-const API = "http://localhost:4000/api/v1";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

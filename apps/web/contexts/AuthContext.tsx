@@ -24,6 +24,8 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1`;
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
@@ -41,9 +43,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   const fetchUser = async (t: string) => {
-    const res = await fetch("http://localhost:4000/api/v1/auth/me", {
+    const res = await fetch(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${t}` },
     });
+
     if (res.ok) return res.json() as Promise<User>;
     return null;
   };

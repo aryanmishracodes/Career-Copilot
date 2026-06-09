@@ -96,11 +96,3 @@ export const interviews = pgTable('interviews', {
   conducted_at: timestamp('conducted_at', { withTimezone: true }).defaultNow(),
 });
 
-export const dailyGuidance = pgTable('daily_guidance', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  user_id: uuid('user_id').references(() => users.id),
-  date: date('date'),
-  tasks: jsonb('tasks'),
-  insight: text('insight'),
-  completed: integer('completed').default(0),
-});

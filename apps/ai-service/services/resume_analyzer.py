@@ -325,7 +325,7 @@ def generate_improvement_tips(ats: dict, sections: dict, skills: list) -> list[s
     return tips[:5]  # Top 5 most impactful tips
 
 
-def analyze_resume(text: str) -> dict:
+def analyze_resume_local(text: str) -> dict:
     """Main analysis function — runs the complete resume intelligence pipeline."""
     name = extract_name(text)
     contact = extract_contact_info(text)
@@ -338,6 +338,45 @@ def analyze_resume(text: str) -> dict:
     summary = generate_strengths_summary(name, skills, sections, ats)
     tips = generate_improvement_tips(ats, sections, skills)
 
+    # Local fallback derivations matching the Gemini schema structure
+    role_fit = [
+        {
+            "role": "Backend Engineer",
+            "pct": min(95, max(10, 30 + len([s for s in skills if s["category"] == "backend"]) * 10)),
+            "missing": ["Docker", "Kubernetes"] if len([s for s in skills if s["category"] == "cloud"]) == 0 else []
+        },
+        {
+            "role": "Full-Stack Engineer",
+            "pct": min(95, max(10, 25 + len([s for s in skills if s["category"] in ["frontend", "backend"]]) * 5)),
+            "missing": ["React/Next.js"] if len([s for s in skills if s["name"].lower() in ["react", "next.js"]]) == 0 else []
+        },
+        {
+            "role": "Frontend Engineer",
+            "pct": min(95, max(10, 30 + len([s for s in skills if s["category"] == "frontend"]) * 10)),
+            "missing": ["TypeScript"] if len([s for s in skills if s["name"].lower() == "typescript"]) == 0 else []
+        },
+        {
+            "role": "DevOps / Cloud Engineer",
+            "pct": min(95, max(10, 20 + len([s for s in skills if s["category"] == "cloud"]) * 15)),
+            "missing": ["Terraform", "Kubernetes"] if len([s for s in skills if s["category"] == "cloud"]) < 2 else []
+        },
+        {
+            "role": "ML / AI Engineer",
+            "pct": min(95, max(10, 15 + len([s for s in skills if s["category"] == "ai"]) * 20)),
+            "missing": ["PyTorch", "TensorFlow"] if len([s for s in skills if s["category"] == "ai"]) == 0 else []
+        }
+    ]
+    role_fit.sort(key=lambda x: x["pct"], reverse=True)
+
+    positive_signals = []
+    negative_signals = []
+    if len(skills) >= 10: positive_signals.append("Strong technical breadth across multiple domains")
+    if metrics_count >= 3: positive_signals.append("Quantified impact with measurable results")
+    if contact["linkedin"]: positive_signals.append("LinkedIn presence established")
+    if metrics_count < 2: negative_signals.append("Missing measurable impact — bullets lack quantified outcomes")
+    if len(action_verbs) < 5: negative_signals.append("Weak action verbs — bullets feel passive or vague")
+    if not sections.get("summary"): negative_signals.append("No professional summary — recruiter has no quick context")
+
     return {
         "name": name,
         "email": contact["email"],
@@ -349,7 +388,115 @@ def analyze_resume(text: str) -> dict:
         "action_verbs_used": action_verbs,
         "metrics_found": metrics_count,
         "improvement_tips": tips,
+        "role_fit": role_fit,
+        "recruiter_signals": {
+            "positive": positive_signals if positive_signals else ["Good core layout structure"],
+            "negative": negative_signals if negative_signals else ["No major negative recruiter signals detected"]
+        },
+        "shortlist_probability": min(95, max(5, int(ats["total_score"] * 0.8 + metrics_count * 2))),
         "experience": [],
         "education": [],
         "projects": [],
     }
+
+
+RESUME_SYSTEM_PROMPT = """
+You are a senior technical recruiter and ATS parsing engine.
+Extract all structured information from the candidate's resume text.
+Your response MUST be a single, valid JSON object matching this schema:
+{
+  "name": "string (Extract candidate's name or default to 'Candidate')",
+  "email": "string | null (Extract candidate's email)",
+  "contact": {
+    "email": "string | null",
+    "phone": "string | null",
+    "linkedin": "string | null",
+    "github": "string | null"
+  },
+  "summary": "string (A professional strengths summary based on their skills and achievements)",
+  "skills": [
+    {"name": "string (e.g. React)", "category": "string (must be one of: 'frontend', 'backend', 'cloud', 'data', 'ai', 'tools', 'other')", "confidence_score": 0-100}
+  ],
+  "sections_found": {
+    "experience": true/false (was experience section found),
+    "education": true/false,
+    "skills": true/false,
+    "projects": true/false,
+    "summary": true/false
+  },
+  "ats_score": {
+    "total_score": 0-100 (Overall ATS compatibility grade),
+    "grade": "string (Excellent | Good | Average | Below Average | Needs Improvement)",
+    "breakdown": {
+      "contact_info": {"score": 0-15, "max": 15, "label": "Contact Information"},
+      "sections": {"score": 0-20, "max": 20, "label": "Resume Structure"},
+      "skills": {"score": 0-25, "max": 25, "label": "Technical Skills"},
+      "action_verbs": {"score": 0-15, "max": 15, "label": "Impact Language"},
+      "metrics": {"score": 0-15, "max": 15, "label": "Quantifiable Results"},
+      "length": {"score": 0-10, "max": 10, "label": "Resume Length"}
+    },
+    "word_count": 0-2000 (Count of words in resume text)
+  },
+  "action_verbs_used": ["string (list of strong verbs found in text)"],
+  "metrics_found": 0-50 (Count of metrics/numbers found),
+  "improvement_tips": ["string (up to 5 actionable improvement tips)"],
+  "role_fit": [
+    {
+      "role": "string (MUST choose from: 'Backend Engineer', 'Full-Stack Engineer', 'Frontend Engineer', 'DevOps / Cloud Engineer', 'ML / AI Engineer')",
+      "pct": 0-100 (matching confidence percentage based on how well their skills/experience fit this role profile),
+      "missing": ["string (concrete list of core technologies, methodologies, or concepts they are missing for this specific role)"]
+    }
+  ],
+  "recruiter_signals": {
+    "positive": ["string (verifiable strengths, like strong technical breadth, top tech stack usage, quantified metrics, clear tenure, elite companies, etc., minimum 2)"],
+    "negative": ["string (red flags or potential issues, like lack of quantifiable metrics, short tenures, formatting gaps, passive phrasing, missing contact details, etc., minimum 2)"]
+  },
+  "shortlist_probability": 0-100 (overall realistic likelihood of passing an initial recruiter screen from 0 to 100 based on resume strength),
+  "experience": [
+    {
+      "title": "string",
+      "company": "string",
+      "start_date": "string",
+      "end_date": "string",
+      "highlights": ["string (bullet points of achievements)"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "string",
+      "institution": "string",
+      "year": "string"
+    }
+  ],
+  "projects": [
+    {
+      "name": "string",
+      "tech_stack": ["string"],
+      "highlights": ["string"]
+    }
+  ]
+}
+
+Ensure the output is strictly valid JSON. Do not return markdown wrappers or comments.
+"""
+
+async def analyze_resume(text: str) -> dict:
+    """Main analysis function — runs the Gemini resume intelligence pipeline with local fallback."""
+    try:
+        from services.gemini_client import gemini_client
+        messages = [{"role": "user", "content": text}]
+        raw = await gemini_client.create_chat_completion(
+            system_instruction=RESUME_SYSTEM_PROMPT,
+            messages=messages,
+            max_tokens=8192
+        )
+        raw = raw.strip()
+        if raw.startswith("```json"):
+            raw = raw[7:]
+        if raw.endswith("```"):
+            raw = raw[:-3]
+        return json.loads(raw.strip())
+    except Exception as e:
+        print(f"[RESUME] Gemini analysis failed, falling back to local parsing: {e}")
+        return analyze_resume_local(text)
+

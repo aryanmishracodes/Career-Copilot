@@ -13,10 +13,10 @@ Guidelines:
 - Next question should build on the conversation
 
 Return ONLY JSON matching:
-{
+{{
   "feedback": "string",
-  "scores": {"technical": 90, "communication": 85},
+  "scores": {{"technical": 90, "communication": 85}},
   "overall_pct": 88,
   "next_question": "string"
-}
+}}
 """
