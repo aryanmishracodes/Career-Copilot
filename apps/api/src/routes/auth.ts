@@ -296,8 +296,6 @@ router.get('/oauth/google/callback', async (req, res) => {
   try {
     const apiBaseUrl = (process.env.API_URL || 'http://localhost:4000').replace(/\/+$/, '');
     const redirectUri = `${apiBaseUrl}/api/v1/auth/oauth/google/callback`;
-    console.log('[OAUTH] Google Callback redirectUri constructed:', redirectUri);
-    console.log('[OAUTH] Google Callback process.env.API_URL:', process.env.API_URL);
 
     // Exchange code for tokens
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
