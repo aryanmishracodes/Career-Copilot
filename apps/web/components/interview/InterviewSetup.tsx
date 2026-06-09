@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Play, Cpu, Layers, Zap, BarChart2, Users, Target, Brain, Activity, Clock
+  Play, Cpu, Layers, Zap, BarChart2, Users, Target, Brain, Activity, Clock, Check
 } from "lucide-react";
 import { fadeUp, staggerContainer, springConfig } from "./motion";
 import { INTERVIEW_TYPES, suggestInterviewType, INTERVIEWER_PERSONALITIES, INTERVIEW_LENGTHS } from "./engine";
@@ -53,31 +53,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
           </p>
         </motion.div>
 
-        {/* Resume context loaded panel */}
-        {resume && (
-          <motion.div variants={fadeUp}>
-            <SpatialPanel glow={true} interactive={false} className="border-emerald-500/25 bg-emerald-500/[0.02] backdrop-blur-xl px-5 py-4">
-              <div className="flex items-center gap-2 mb-3.5 flex-wrap">
-                <span className="text-[9px] font-mono tracking-widest font-bold px-2 py-0.5 rounded-md border bg-emerald-950/40 text-emerald-400 border-emerald-900/40 uppercase shrink-0">
-                  Telemetry Active
-                </span>
-                <span className="text-xs text-zinc-500 font-outfit">
-                  Simulation calibrated from parsed resume profile
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2 pt-1 border-t border-zinc-900/50">
-                {skills.map((s) => (
-                  <span
-                    key={s}
-                    className="text-[10px] font-mono bg-zinc-900/80 text-zinc-400 border border-zinc-800/40 rounded px-2.5 py-1 select-none"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </SpatialPanel>
-          </motion.div>
-        )}
+        {/* Telemetry panel removed */}
 
         {/* Target role inputs */}
         <motion.div variants={fadeUp} className="space-y-2.5">
@@ -94,11 +70,11 @@ export function InterviewSetup({ resume, onStart }: Props) {
         </motion.div>
 
         {/* Interview type selector grid */}
-        <motion.div variants={fadeUp} className="space-y-3.5">
-          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <motion.div variants={fadeUp} className="space-y-6">
+          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase block pb-2">
             Simulation Matrix Type
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2">
             {INTERVIEW_TYPES.map((type, i) => {
               const isSuggested = type.id === suggestedId;
               const isSelected = selected?.id === type.id;
@@ -112,12 +88,12 @@ export function InterviewSetup({ resume, onStart }: Props) {
                   transition={{ delay: i * 0.04 + 0.15, duration: 0.35 }}
                 >
                   <SpatialPanel
-                    glow={true}
+                    glow={isSelected}
                     interactive={true}
-                    className={`h-full flex flex-col justify-between gap-4 border ${
+                    className={`h-full flex flex-col justify-between gap-4 border-2 transition-all duration-300 ${
                       isSelected
-                        ? "border-zinc-500 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
-                        : "border-zinc-900/80 bg-zinc-950/20 hover:border-zinc-800"
+                        ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)] font-bold text-zinc-100"
+                        : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
                     }`}
                   >
                     {/* Header */}
@@ -127,9 +103,18 @@ export function InterviewSetup({ resume, onStart }: Props) {
                           <span className={`shrink-0 transition-colors duration-300 ${isSelected ? "text-violet-400" : "text-zinc-600"}`}>
                             {TYPE_ICONS[type.id]}
                           </span>
-                          <span className={`text-sm font-semibold truncate font-outfit ${isSelected ? "text-zinc-100" : "text-zinc-300"}`}>
+                          <span className={`text-sm truncate font-outfit ${isSelected ? "text-zinc-100 font-bold" : "text-zinc-300 font-semibold"}`}>
                             {type.label}
                           </span>
+                          {isSelected && (
+                            <motion.span
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center text-zinc-950 shrink-0"
+                            >
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </motion.span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {isSuggested && (
@@ -169,11 +154,11 @@ export function InterviewSetup({ resume, onStart }: Props) {
         </motion.div>
 
         {/* Interviewer style */}
-        <motion.div variants={fadeUp} className="space-y-3.5">
-          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <motion.div variants={fadeUp} className="space-y-6">
+          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase block pb-2">
             Diagnostic Persona Style
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
             {INTERVIEWER_PERSONALITIES.map((p) => {
               const isActive = personality === p.id;
               return (
@@ -185,17 +170,28 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border ${
+                    className={`h-full flex flex-col justify-between p-4 border-2 transition-all duration-300 ${
                       isActive
-                        ? "border-zinc-600 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
-                        : "border-zinc-900 bg-zinc-950/20 hover:border-zinc-800"
+                        ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)]"
+                        : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
                     }`}
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-3">
-                        <span className={`text-xs font-semibold font-outfit ${isActive ? "text-zinc-100 font-bold" : "text-zinc-300"}`}>
-                          {p.name}
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`text-xs font-outfit ${isActive ? "text-zinc-100 font-bold" : "text-zinc-300 font-semibold"}`}>
+                            {p.name}
+                          </span>
+                          {isActive && (
+                            <motion.span
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center text-zinc-950 shrink-0"
+                            >
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </motion.span>
+                          )}
+                        </div>
                         <span className={`text-[9px] font-mono tracking-widest uppercase ${
                           p.strictness === "High" ? "text-rose-400" :
                           p.strictness === "Medium" ? "text-amber-400" : "text-emerald-400"
@@ -214,11 +210,11 @@ export function InterviewSetup({ resume, onStart }: Props) {
         </motion.div>
 
         {/* Interview length */}
-        <motion.div variants={fadeUp} className="space-y-3.5">
-          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <motion.div variants={fadeUp} className="space-y-6">
+          <label className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase block pb-2">
             Simulation Scope Length
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             {INTERVIEW_LENGTHS.map((len) => {
               const isActive = selectedLength === len.questions;
               return (
@@ -230,17 +226,28 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border ${
+                    className={`h-full flex flex-col justify-between p-4 border-2 transition-all duration-300 ${
                       isActive
-                        ? "border-zinc-600 bg-zinc-900/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]"
-                        : "border-zinc-900 bg-zinc-950/20 hover:border-zinc-800"
+                        ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)]"
+                        : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
                     }`}
                   >
                     <div className="space-y-2 font-outfit">
                       <div className="flex items-center justify-between gap-3">
-                        <span className={`text-base font-bold font-mono tracking-tight ${isActive ? "text-zinc-100" : "text-zinc-300"}`}>
-                          {len.questions}Q
-                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`text-base font-bold font-mono tracking-tight ${isActive ? "text-zinc-100" : "text-zinc-300"}`}>
+                            {len.questions}Q
+                          </span>
+                          {isActive && (
+                            <motion.span
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center text-zinc-950 shrink-0"
+                            >
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </motion.span>
+                          )}
+                        </div>
                         <span className={`text-[9px] font-mono tracking-widest uppercase ${len.intensityColor}`}>
                           {len.intensity}
                         </span>
@@ -267,14 +274,8 @@ export function InterviewSetup({ resume, onStart }: Props) {
             className="px-6 py-3.5 flex items-center gap-2"
           >
             <Play className="w-4.5 h-4.5 text-zinc-950 fill-zinc-950" />
-            Begin Simulation
-            {selected && (
-              <span className="text-zinc-500 font-normal font-mono">— {selected.label}</span>
-            )}
+            BEGIN SIMULATION
           </InteractiveButton>
-          {!selected && (
-            <p className="text-[10px] font-mono tracking-wider text-zinc-600 uppercase mt-2">Select a simulation matrix type to unlock diagnostic begin triggers</p>
-          )}
         </motion.div>
       </motion.div>
     </div>
