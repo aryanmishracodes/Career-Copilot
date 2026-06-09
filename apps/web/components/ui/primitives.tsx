@@ -25,8 +25,6 @@ export function SpatialPanel({
   glow = false,
   ...props
 }: SpatialPanelProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -41,30 +39,28 @@ export function SpatialPanel({
         scale: 1.008,
         borderColor: "rgba(255, 255, 255, 0.12)",
         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.08)",
+        transition: { type: "spring" as const, stiffness: 500, damping: 25, delay: 0 }
       }
     : {};
 
   return (
     <motion.div
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "spatial-glass rounded-2xl p-6 relative overflow-hidden",
+        "spatial-glass rounded-2xl p-6 relative overflow-hidden group",
         interactive && "cursor-pointer",
         className
       )}
       whileHover={hoverAnimation}
-      whileTap={interactive ? { scale: 0.995 } : {}}
-      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      whileTap={interactive ? { scale: 0.995, transition: { delay: 0 } } : {}}
+      transition={{ type: "spring" as const, stiffness: 500, damping: 25, delay: 0 }}
       {...props}
     >
       {/* Dynamic Cursor Spotlight Radial Glow */}
       {glow && (
         <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
           style={{
-            opacity: isHovered ? 0.9 : 0,
             background: `radial-gradient(400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(139, 92, 246, 0.07), transparent 80%)`,
           }}
         />
@@ -72,9 +68,8 @@ export function SpatialPanel({
       {/* Spotlight Border Highlight */}
       {glow && (
         <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
           style={{
-            opacity: isHovered ? 0.8 : 0,
             background: `radial-gradient(150px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 255, 255, 0.08), transparent 80%)`,
             border: "1px solid transparent",
             maskImage: "linear-gradient(black, black) exclude, linear-gradient(black, black)",
