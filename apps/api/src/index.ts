@@ -45,16 +45,11 @@ app.use('/api/v1/interviews', interviewsRouter);
 app.use('/api/v1/market', marketRouter);
 
 app.get('/health', async (req, res) => {
-  const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://career-copilot-ai-m8kq.onrender.com';
+  const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
   let aiStatus = 'unknown';
   let aiError = null;
   try {
-    const response = await fetch(`${AI_SERVICE_URL}/health`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-      },
-      signal: AbortSignal.timeout(5000)
-    });
+    const response = await fetch(`${AI_SERVICE_URL}/health`, { signal: AbortSignal.timeout(5000) });
     if (response.ok) {
       aiStatus = await response.text();
     } else {
