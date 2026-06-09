@@ -462,6 +462,16 @@ const QUESTION_BANK: Record<string, QuestionEntry[]> = {
       idealAnswer: "Three isolation models: (1) Separate databases per tenant — strongest isolation, highest cost, complex ops. Use for enterprise/compliance requirements. (2) Separate schemas per tenant in one database — good isolation, moderate cost, schema migrations are complex. (3) Shared schema with tenant_id column — lowest cost, highest density, risk of data leakage if queries miss tenant filter. For most SaaS: start with shared schema + Row Level Security (Postgres RLS) to enforce tenant isolation at DB level. Add tenant_id to every table, create RLS policies, set tenant context per connection. For large tenants, shard to dedicated databases. Use connection pooling per tenant to prevent noisy neighbor. Encrypt tenant data with per-tenant keys for compliance.",
       concepts: ["subtopic:multi-tenancy", "mode:design", "difficulty:hard", "row-level-security", "data-isolation"],
     },
+    {
+      question: "Design a distributed rate limiter. How do you handle synchronization and race conditions across multiple nodes?",
+      idealAnswer: "Use Redis with Token Bucket or Sliding Window Log. To avoid race conditions and network roundtrips, execute atomic Redis Lua scripts which check and decrement tokens in a single transaction. For horizontal scaling, use consistent hashing to route clients to specific Redis instances, or use Redis Cluster. To handle high scale (>100k RPS) where Redis becomes a bottleneck, use local in-memory token buckets on the application servers and sync back to Redis asynchronously in batches, trading accuracy for raw performance.",
+      concepts: ["subtopic:distributed-rate-limiter", "mode:scalability", "difficulty:hard", "redis-lua", "consistent-hashing"],
+    },
+    {
+      question: "Design a web crawler that crawls 1 billion pages monthly. How do you handle politeness and deduplication?",
+      idealAnswer: "Architecture: (1) URL Frontier: queue of URLs to crawl. (2) DNS Resolver: cache DNS queries locally to avoid ISP load. (3) HTML Downloader: fetches pages. (4) Content Parser & Link Extractor. (5) Content Filter & Deduplication: use SimHash or MinHash to detect near-duplicate pages. (6) URL Deduplication: use a Bloom Filter containing all crawled URLs for O(1) membership check. Politeness: maintain queues grouped by host domain (e.g. example.com), and enforce a delay between requests to the same host using a coordinator (like Zookeeper). Scalability: distribute crawler nodes, partition the Frontier by domain hash.",
+      concepts: ["subtopic:web-crawler", "mode:design", "difficulty:hard", "bloom-filter", "url-frontier"],
+    },
   ],
   behavioral: [
     {
@@ -478,6 +488,21 @@ const QUESTION_BANK: Record<string, QuestionEntry[]> = {
       question: "Tell me about the most complex technical problem you've solved. Walk me through your reasoning.",
       idealAnswer: "Structure: (1) Explain why it was complex — multiple interacting systems, unclear requirements, novel problem space, or scale challenges. (2) Walk through your debugging/investigation process — how you formed hypotheses, what data you gathered, how you narrowed the problem space. (3) The solution and why it worked. (4) What you learned. Recruiters are evaluating: systematic thinking (not random trial-and-error), ability to communicate technical complexity clearly, comfort with ambiguity, depth of understanding. Use concrete metrics: 'reduced p99 latency from 2s to 80ms', 'fixed a race condition that caused 0.1% of transactions to fail'. Avoid vague answers — specificity signals real experience.",
       concepts: ["problem-solving", "debugging-process", "systematic-thinking", "technical-complexity"],
+    },
+    {
+      question: "Tell me about a time you failed or made a mistake on a project. What did you do, and what did you learn?",
+      idealAnswer: "STAR format: (1) Situation — describe a real mistake (e.g. 'I deployed a database migration that locked a table and caused a 10-minute outage'). (2) Task — what was your responsibility to fix it. (3) Action — immediate damage control (rollback, coordinate with team, communicate to clients), followed by a blameless post-mortem, identifying root cause, and setting up safeguards (e.g. testing migrations on prod-sized staging DB). (4) Result — the outcome and learning. Key signals: take full ownership (no blaming others), show constructive learning, and prove you implemented systemic prevention. Avoid: fake failures ('I worked too hard').",
+      concepts: ["handling-failure", "ownership", "post-mortem", "star-method"],
+    },
+    {
+      question: "How do you handle a situation where a product requirement is ambiguous or incomplete, but you are expected to deliver quickly?",
+      idealAnswer: "Approach: (1) Avoid building on assumptions, which leads to rework. (2) Identify the core ambiguity and draft 2-3 logical proposals with trade-offs. (3) Reach out immediately to the product manager/stakeholders with these concrete options instead of asking open-ended questions. (4) Recommend the option that aligns with the current MVP goals or minimizes future refactoring. (5) Document the agreed-upon requirements in writing. (6) Build with modularity so changes can be easily made if the scope changes. Key signals: proactive communication, structured proposals, adaptability under tight deadlines.",
+      concepts: ["ambiguity", "proactive-communication", "stakeholder-alignment", "scope-management"],
+    },
+    {
+      question: "Tell me about a time you had to work with a difficult coworker or stakeholder. How did you handle the relationship?",
+      idealAnswer: "STAR format: (1) Situation — a clash of work styles or communication breakdown (e.g. 'a senior reviewer who left harsh, vague comments on PRs'). (2) Task — need to resolve friction to deliver the project. (3) Action — set up a direct, 1-on-1 coffee chat. Sought first to understand their perspective and expectations. Discussed feedback styles in a neutral, non-accusatory way. Agreed on a clear structure for review comments (using conventional commits/labels). (4) Result — improved trust, faster review cycles, and a stronger team dynamic. Key signals: empathy, emotional intelligence, constructive communication, focus on project delivery over ego.",
+      concepts: ["difficult-coworker", "empathy", "conflict-resolution", "professionalism"],
     },
   ],
   dsa: [
@@ -553,6 +578,26 @@ const QUESTION_BANK: Record<string, QuestionEntry[]> = {
       idealAnswer: "Blue-green: maintain two identical production environments (blue = current, green = new). Deploy to green, run tests, then switch traffic 100% from blue to green via load balancer. Rollback is instant — switch back to blue. Downside: requires 2x infrastructure cost, database migrations must be backward compatible. Best for: stateless services, when you need instant rollback. Canary: gradually shift traffic to new version — start with 1%, monitor error rates and latency, increase to 10%, 50%, 100%. Rollback by routing traffic back. Downside: slower rollout, need feature flags for database changes, monitoring must be robust. Best for: high-traffic services where you want to validate with real traffic before full rollout. Canary is more sophisticated but catches issues that staging misses.",
       concepts: ["blue-green", "canary-deployment", "traffic-shifting", "rollback-strategy"],
     },
+    {
+      question: "How would you design a backup and disaster recovery strategy for a database with 1TB of data?",
+      idealAnswer: "Backup strategy: (1) Automated daily full snapshots, stored in a separate region (e.g. AWS S3 with cross-region replication). (2) Continuous Write-Ahead Log (WAL) archiving / Point-in-Time Recovery (PITR) to allow restoring to any second. (3) Retain backups based on compliance (e.g. 30 days). Disaster Recovery: Define RTO (Recovery Time Objective - how fast to restore) and RPO (Recovery Point Objective - how much data loss is acceptable). For high availability: set up a multi-region active-passive replica. Run automated recovery drills to test restoring backups regularly. Verify backup integrity by running automated sanity checks on restored snapshots in a staging environment.",
+      concepts: ["disaster-recovery", "database-backup", "rto-rpo", "point-in-time-recovery"],
+    },
+    {
+      question: "What is Infrastructure as Code (IaC) and what are the benefits of using tools like Terraform or CloudFormation?",
+      idealAnswer: "IaC is the practice of managing and provisioning infrastructure through machine-readable definition files rather than manual configuration. Benefits: (1) Consistency — eliminates configuration drift across dev/staging/prod. (2) Version control — infrastructure code is versioned in Git, enabling PR reviews, audit trails, and easy rollbacks. (3) Speed & Automation — spin up entire environments in minutes. (4) Documentation — the code acts as documentation of current infrastructure state. Terraform uses a declarative syntax and maintains a state file to track resources, allowing it to calculate the delta (plan) before applying changes.",
+      concepts: ["infrastructure-as-code", "terraform", "configuration-drift", "declarative-syntax"],
+    },
+    {
+      question: "How does containerization (e.g., Docker) solve the 'it works on my machine' problem, and how does it differ from virtual machines?",
+      idealAnswer: "Docker containerizes the application and all its dependencies (libraries, runtime, system tools) into an immutable image. Running this image creates a container that behaves identically on local machines, staging, and production. Difference from VMs: (1) Hypervisor vs Container Engine: VMs run on a hypervisor and require a full Guest OS per VM. Containers share the host OS kernel and isolate processes via namespaces and cgroups. (2) Overhead & Startup: VMs are heavy, require gigabytes of storage, and take minutes to boot. Containers are lightweight (megabytes), use fewer resources, and start in seconds. (3) Density: You can run many more containers than VMs on the same hardware.",
+      concepts: ["containerization", "docker-vs-vm", "process-isolation", "immutable-infrastructure"],
+    },
+    {
+      question: "What is GitOps and how does it differ from traditional CI/CD push-based deployment pipelines?",
+      idealAnswer: "GitOps is an operational framework where Git is the single source of truth for declarative infrastructure and applications. Deployment process is pull-based rather than push-based. Traditional CD: CI/CD runner runs scripts (e.g. helm upgrade or kubectl apply) to push changes to the cluster. Requires cluster access credentials stored in CI/CD variables (security risk). GitOps: An agent (like ArgoCD or Flux) runs inside the Kubernetes cluster. It continuously monitors the Git repository containing environment manifests. If it detects a difference between Git and the cluster state, it pulls the changes and reconciles the cluster automatically. Pros: secure (no credentials in CI/CD), auto-healing (drift correction), clean rollbacks via git revert.",
+      concepts: ["gitops", "pull-based-deployment", "drift-detection", "kubernetes-security"],
+    },
   ],
   technical_screening: [
     {
@@ -569,6 +614,26 @@ const QUESTION_BANK: Record<string, QuestionEntry[]> = {
       question: "Explain the CAP theorem and give an example of a system that prioritises each combination.",
       idealAnswer: "CAP theorem: in a distributed system, you can only guarantee 2 of 3: Consistency (all nodes see the same data), Availability (every request gets a response), Partition tolerance (system works despite network partitions). Since network partitions are unavoidable in distributed systems, the real choice is CP vs AP. CP (Consistency + Partition tolerance): during a partition, refuse requests rather than return stale data. Example: HBase, Zookeeper, traditional RDBMS with synchronous replication. Use when: financial transactions, inventory systems. AP (Availability + Partition tolerance): during a partition, return potentially stale data rather than error. Example: Cassandra, DynamoDB, CouchDB. Use when: social media feeds, shopping carts, DNS. CA (Consistency + Availability): only possible without partitions — single-node systems or systems that halt on partition. Important nuance: CAP is about worst-case behavior during partitions, not normal operation.",
       concepts: ["cap-theorem", "consistency-availability", "partition-tolerance", "cp-vs-ap"],
+    },
+    {
+      question: "What happens when you type a URL into your browser and press Enter? Walk through the network stack.",
+      idealAnswer: "DNS lookup to resolve IP address (browser cache -> OS cache -> router -> ISP -> Recursive Resolver -> Root -> TLD -> Authoritative name servers). Establish TCP connection via 3-way handshake (SYN, SYN-ACK, ACK). For HTTPS, perform TLS handshake to negotiate keys. Browser sends HTTP GET request. Web server processes request (reverse proxy -> application server -> DB) and returns HTTP response (e.g. 200 OK). Browser parses HTML, constructs DOM, fetches subresources (CSS, JS, images), runs JS, and renders the page (Reflow/Repaint).",
+      concepts: ["network-stack", "dns-lookup", "tcp-handshake", "browser-rendering"],
+    },
+    {
+      question: "How do database indexes speed up queries, and what is the trade-off of creating too many indexes?",
+      idealAnswer: "Indexes act like a book index, pointing directly to row locations. B-trees (standard) keep data sorted and allow O(log N) searches instead of O(N) table scans. Indexes speed up SELECT queries with WHERE, JOIN, and ORDER BY clauses. Trade-off: (1) Write performance overhead — every INSERT, UPDATE, and DELETE must also update the index, slowing writes. (2) Storage cost — indexes occupy memory and disk space, sometimes exceeding table size. (3) Query optimizer confusion — too many indexes can make the query planner choose suboptimal index paths. Rule of thumb: index columns used frequently in filters/joins, avoid indexing columns with low cardinality (like gender).",
+      concepts: ["db-index", "btree", "query-optimization", "write-overhead"],
+    },
+    {
+      question: "What is CORS (Cross-Origin Resource Sharing), and how does the browser enforce it?",
+      idealAnswer: "CORS is a browser security mechanism that blocks web pages from making requests to a different domain than the one that served the page, unless the server explicitly allows it. Enforced via HTTP headers. For non-simple requests (like POST with JSON or custom headers), the browser sends a preflight OPTIONS request first. The server must respond with access control headers (Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers, Access-Control-Allow-Credentials). If the origin matches, the browser sends the actual request. It is a browser-side restriction — the server still processes the request, but the browser blocks the response from being read by JS.",
+      concepts: ["cors", "preflight-options", "browser-security", "same-origin-policy"],
+    },
+    {
+      question: "Explain the difference between JWT-based authentication and Session-based authentication. When would you use each?",
+      idealAnswer: "Session-based: stateful. Server stores session in DB/Redis and sends session ID in cookie. On each request, server queries DB to validate session ID. Pros: easy revocation, secure by default. Cons: database lookup bottleneck, scales poorly horizontally without shared session store. JWT-based: stateless. Server issues signed token containing payload (user ID, expiration) and sends to client. Client sends it in Authorization header. Server validates signature locally without DB query. Pros: stateless, highly scalable, fits microservices. Cons: revocation is difficult (must use blacklist/short TTL), payload is readable, security risk if stored in localStorage (XSS) or cookies (CSRF).",
+      concepts: ["jwt", "session-auth", "stateless-vs-stateful", "auth-security"],
     },
   ],
   resume_deep_dive: [
