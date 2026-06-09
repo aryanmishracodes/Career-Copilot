@@ -35,7 +35,7 @@ async def parse_resume(req: ParseRequest):
         analysis = await analyze_resume(raw_text)
 
 
-        # Embed and store (mock for now)
+        # Index document representation for semantic search retrieval
         embedding_id = await embed_and_store(raw_text, req.resume_id, req.user_id)
 
         return {
