@@ -10,6 +10,11 @@ import marketRouter from './routes/market';
 
 dotenv.config();
 
+if (process.env.AI_SERVICE_URL && !process.env.AI_SERVICE_URL.startsWith('http://') && !process.env.AI_SERVICE_URL.startsWith('https://')) {
+  process.env.AI_SERVICE_URL = `http://${process.env.AI_SERVICE_URL}`;
+}
+
+
 const app = express();
 const port = process.env.PORT || 4000;
 
