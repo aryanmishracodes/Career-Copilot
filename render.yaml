@@ -31,10 +31,7 @@ services:
           type: redis
           property: connectionString
       - key: AI_SERVICE_URL
-        fromService:
-          name: career-copilot-ai
-          type: web
-          property: url
+        value: http://career-copilot-ai:10000
       - key: APP_URL
         sync: false # set manually after Vercel deploy
       - key: JWT_SECRET
