@@ -90,7 +90,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                   <SpatialPanel
                     glow={isSelected}
                     interactive={true}
-                    className={`h-full flex flex-col justify-between gap-4 border-2 transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between gap-4 border-2 transition-[background-color] duration-200 ${
                       isSelected
                         ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)] font-bold text-zinc-100"
                         : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
@@ -170,7 +170,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border-2 transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between p-4 border-2 transition-[background-color] duration-200 ${
                       isActive
                         ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)]"
                         : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
@@ -226,7 +226,7 @@ export function InterviewSetup({ resume, onStart }: Props) {
                 >
                   <SpatialPanel
                     glow={isActive}
-                    className={`h-full flex flex-col justify-between p-4 border-2 transition-all duration-300 ${
+                    className={`h-full flex flex-col justify-between p-4 border-2 transition-[background-color] duration-200 ${
                       isActive
                         ? "border-violet-500 bg-violet-950/20 shadow-[0_0_20px_rgba(139,92,246,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)]"
                         : "border-zinc-900 bg-zinc-950/30 hover:border-zinc-800/80"
